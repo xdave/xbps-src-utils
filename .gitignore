@@ -1,0 +1,5 @@
+*.o
+*~
+repo-checkvers
+!*.c
+!*.h
