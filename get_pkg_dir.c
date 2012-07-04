@@ -19,10 +19,13 @@ get_pkg_dir(const char* dir_name, const char* srcpkgs)
 	path_len = srcpkgdir_len+dir_len+2;
 	path = malloc(sizeof(char)*(path_len));
 	ret = snprintf(path, path_len, "%s/%s", srcpkgs, dir_name);
-	path[path_len] = '\0';
 
-	if (ret < 1)
+	if (ret < 1) {
 		fprintf(stderr, "Error: %s.\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	path[path_len] = '\0';
 
 	return path;
 }
