@@ -1,7 +1,8 @@
 NAME	:= repo-checkvers
 
 CFLAGS	?= -ansi -O2 -pipe -mtune=generic -fPIC -fPIE \
-	   -fstack-protector --param ssp-buffer-size=4 -Wall -Werror
+	   -fstack-protector --param ssp-buffer-size=4 \
+	   -Wall -Werror -Wformat -Wformat-security -Werror=format-security
 DEFS	?= -D_POSIX_C_SOURCE=200112L -D_FORTIFY_SOURCE=2
 LDFLAGS	?= -Wl,--as-needed -pie -Wl,-z,relro -Wl,-z,now
 
