@@ -21,7 +21,7 @@ main(int argc, char** argv)
 		rcv_usage(r);
 	}
 
-	if (g_strrstr(r->srcpkgs, "/srcpkgs") == NULL) {
+	if (g_strrstr(r->srcpkgs, "srcpkgs") == NULL) {
 		g_dir_close(r->dir_p);
 		g_fprintf(stderr, "Error: %s\n",
 			  "This doesn't appear to be a srcpkgs directory.");
