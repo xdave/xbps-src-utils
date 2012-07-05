@@ -13,8 +13,8 @@ rcv_usage(rcv_t *r)
 "\t\t(ie. $HOME/xbps-packages/srcpkgs)\n\n"
 "This program shows which XBPS binary packages need to be rebuilt on your\n"
 "system by comparing the versions of the binary packages which are available \n"
-"in the XBPS repositories registered in your `/etc/xbps/xbps.conf' with the\n"
-"latest available versions of them in the source package tree\n\n",
+"in the XBPS repositories registered in your `xbps.conf' with the latest \n"
+"available versions of them in the source package tree\n\n",
 		r->progname);
 	rcv_free(r);
 	exit(EXIT_FAILURE);

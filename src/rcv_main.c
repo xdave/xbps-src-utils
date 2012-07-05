@@ -1,8 +1,8 @@
+#include <errno.h>
 #include <glib.h>
 #include <glib/gprintf.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "rcv.h"
 
 int
@@ -21,10 +21,10 @@ main(int argc, char** argv)
 		rcv_usage(r);
 	}
 
-	if(g_strrstr(r->srcpkgs, "/srcpkgs") == NULL) {
+	if (g_strrstr(r->srcpkgs, "/srcpkgs") == NULL) {
 		g_dir_close(r->dir_p);
 		g_fprintf(stderr, "Error: %s\n",
-			"This doesn't appear to be a srcpkgs directory.");
+			  "This doesn't appear to be a srcpkgs directory.");
 		rcv_usage(r);
 	}
 
@@ -40,9 +40,22 @@ main(int argc, char** argv)
 					   r->pkgname,
 					   (gchar*)NULL);
 		if(g_file_test(r->path, G_FILE_TEST_IS_SYMLINK) == FALSE) {
-			r->tmpl = g_build_filename(r->path, "template", (gchar*)NULL);
+			r->tmpl = g_build_filename(r->path,
+						   "template",
+						   (gchar*)NULL);
 			if (g_file_test(r->tmpl, G_FILE_TEST_EXISTS) == TRUE) {
-				rcv_parse_tmpl(r, &xh, r->tmpl);
+				if (g_strcmp0(r->pkgname, "apache-mpm-event") != 0 &&
+				    g_strcmp0(r->pkgname, "apache-mpm-worker") != 0 &&
+				    g_strcmp0(r->pkgname, "gvim") != 0 &&
+				    g_strcmp0(r->pkgname, "poppler-qt4") != 0) {
+					rcv_parse_tmpl(r, &xh, r->tmpl);
+				}
+			} else {
+				g_fprintf(stderr, "'%s': %s\n",
+					  r->tmpl, strerror(ENOENT));
+				g_free(r->tmpl);
+				g_free(r->path);
+				break;
 			}
 			g_free(r->tmpl);
 		}
@@ -50,7 +63,7 @@ main(int argc, char** argv)
 	}
 
 	g_dir_close(r->dir_p);
-	rcv_free(r);
 	xbps_end(&xh);
+	rcv_free(r);
 	exit(EXIT_SUCCESS);
 }
