@@ -33,5 +33,6 @@ replace_shell_vars(gpointer key, gpointer val, gpointer data)
 		utc = g_date_time_new_now_utc();
 		replace_in_version(ht, "\"$(date -u +%Y%m%d)\"",
 			g_date_time_format(utc, "%Y%m%d"));
+		g_date_time_unref(utc);
 	}
 }
