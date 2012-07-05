@@ -17,7 +17,7 @@ WARN		+= -Wall -Wextra -Werror -Wshadow -Wformat=2 \
 		-Wcomment -Wdeclaration-after-statement -Wwrite-strings \
 		-Wstack-protector
 
-CFLAGS		+= -O3 -pipe -mtune=generic -fPIC -ansi $(WARN) $(PKG_CFLAGS) \
+CFLAGS		+= -O2 -pipe -mtune=generic -fPIC -ansi $(WARN) $(PKG_CFLAGS) \
 		   -fstack-protector --param ssp-buffer-size=4
 
 DEFS		+= -D_POSIX_C_SOURCE=200112L -D_FORTIFY_SOURCE=2
