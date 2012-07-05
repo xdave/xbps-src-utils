@@ -1,19 +1,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "repo-checkvers.h"
+#include <glib.h>
+#include <glib/gprintf.h>
+
+#include "rcv.h"
 
 int
 main(int argc, char** argv)
 {
-	rcv_t *r = g_malloc0(sizeof(rcv_t));
+	rcv_t *r = rcv_init();
 	GError *err = NULL;
 
 	if (argc < 2) {
-		g_fprintf(stderr,
-			"Must pass srcpkgdir.\nExample:\n\t%s /foo\n", argv[0]);
 		g_free(r);
-		exit(EXIT_FAILURE);
+		usage(argv[0]);
 	}
 
 	r->srcpkgs = argv[1];
@@ -23,8 +24,17 @@ main(int argc, char** argv)
 		g_fprintf(stderr, "%s\n", err->message);
 		g_error_free(err);
 		g_free(r);
-		exit(EXIT_FAILURE);
+		usage(argv[0]);
 	}
+
+	if(g_strrstr(r->srcpkgs, "/srcpkgs") == NULL) {
+		g_dir_close(r->dir_p);
+		g_free(r);
+		g_fprintf(stderr, "Error: %s\n",
+			"This doesn't appear to be a srcpkgs directory.");
+		usage(argv[0]);
+	}
+
 	while ((r->dir_name = g_dir_read_name(r->dir_p)) != NULL) {
 		r->path = g_build_filename(r->srcpkgs,
 					   r->dir_name,

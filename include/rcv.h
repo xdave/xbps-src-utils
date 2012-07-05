@@ -2,7 +2,6 @@
 #define REPO_CHECKVERS H
 
 #include <glib.h>
-#include <glib/gprintf.h>
 
 typedef struct rcv_t {
 	GDir *dir_p;
@@ -10,5 +9,9 @@ typedef struct rcv_t {
 	const gchar *srcpkgs;
 	gchar *path;
 } rcv_t;
+
+rcv_t *rcv_init();
+
+void usage(gchar *);
 
 #endif /* REPO_CHECKVERS_H */

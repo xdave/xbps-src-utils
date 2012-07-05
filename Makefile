@@ -14,7 +14,7 @@ DEFS		?= -D_POSIX_C_SOURCE=200112L -D_FORTIFY_SOURCE=2
 LDFLAGS		?= -Wl,--as-needed -Wl,-z,relro -Wl,-z,now \
 		   	$(GLIB_LDFLAGS)
 
-SRC		:= $(wildcard *.c)
+SRC		:= $(wildcard src/*.c)
 OBJ		:= $(patsubst %.c,%.o,$(SRC))
 
 all: $(NAME)
@@ -23,7 +23,7 @@ $(NAME): $(OBJ)
 	$(CC) $(STATIC) $^ $(LDFLAGS) -o $@
 
 %.o: %.c
-	$(CC) -c $< $(CFLAGS) $(DEFS) -o $@
+	$(CC) -c $< $(CFLAGS) -Iinclude $(DEFS) -o $@
 
 clean:
 	$(RM) $(NAME) $(OBJ)
