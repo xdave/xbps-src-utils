@@ -1,9 +1,3 @@
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <dirent.h>
-#include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -12,51 +6,36 @@
 int
 main(int argc, char** argv)
 {
-	DIR* dir_p;
-	struct dirent *dir_ent;
-	struct stat dir_stat;
-	char *path;
-	size_t path_len;
-	int ret;
-	const char *dir_name;
-	const char* srcpkgs;
+	rcv_t *r = g_malloc0(sizeof(rcv_t));
+	GError *err = NULL;
 
 	if (argc < 2) {
-		errno = EINVAL;
-		DIE("Must pass srcpkgdir.\nExample:\n\t%s /foo\n", argv[0]);
+		g_fprintf(stderr,
+			"Must pass srcpkgdir.\nExample:\n\t%s /foo\n", argv[0]);
+		g_free(r);
+		exit(EXIT_FAILURE);
 	}
 
-	srcpkgs = argv[1];
+	r->srcpkgs = argv[1];
 
-	dir_p = opendir(srcpkgs);
-	if (dir_p == NULL) {
-		DIE("Can't open '%s'.", srcpkgs);
+	r->dir_p = g_dir_open(r->srcpkgs, 0, &err);
+	if (err != NULL) {
+		g_fprintf(stderr, "%s\n", err->message);
+		g_error_free(err);
+		g_free(r);
+		exit(EXIT_FAILURE);
 	}
-
-	while ((dir_ent = readdir(dir_p)) != NULL) {
-		dir_name = dir_ent->d_name;
-
-		if (strcmp(".", dir_name) == 0 || strcmp("..", dir_name) == 0)
-			continue;
-
-		path_len = strlen(dir_name) + strlen(srcpkgs) + 2;
-		if ((path = malloc(sizeof(char) * path_len)) == NULL) {
-			DIE("%s", "Can't allocate memory for a string.");
+	while ((r->dir_name = g_dir_read_name(r->dir_p)) != NULL) {
+		r->path = g_build_filename(r->srcpkgs,
+					   r->dir_name,
+					   (gchar*)NULL);
+		if(g_file_test(r->path, G_FILE_TEST_IS_SYMLINK) == FALSE) {
+			g_fprintf(stdout, "pkgname: %s\n", r->dir_name);
 		}
-
-		ret = snprintf(path, path_len, "%s/%s", srcpkgs, dir_name);
-		if (ret < 1) {
-			DIE("%s", "Output of snprintf() was truncated.");
-		}
-
-		lstat(path, &dir_stat);
-		free(path);
-
-		if (S_ISLNK(dir_stat.st_mode) == 0)
-			fprintf(stdout, "pkgname: %s\n", dir_name);
+		g_free(r->path);
 	}
 
-	closedir(dir_p);
-
-	return EXIT_SUCCESS;
+	g_dir_close(r->dir_p);
+	g_free(r);
+	exit(EXIT_SUCCESS);
 }
