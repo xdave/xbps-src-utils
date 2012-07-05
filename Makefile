@@ -5,10 +5,10 @@ STATIC		:= # -static
 
 PKGS		:= glib-2.0 libxbps
 
-GLIB_CFLAGS	:= $(shell pkg-config --cflags $(PKGS))
-GLIB_LDFLAGS	:= $(shell pkg-config --libs $(PKG_STATIC) $(PKGS))
+PKG_CFLAGS	:= $(shell pkg-config --cflags $(PKGS))
+PKG_LDFLAGS	:= $(shell pkg-config --libs $(PKG_STATIC) $(PKGS))
 
-WARN		:= -Wall -Wextra -Werror -Wshadow -Wformat=2 \
+WARN		+= -Wall -Wextra -Werror -Wshadow -Wformat=2 \
 		-Wmissing-prototypes -Wmissing-declarations -Wnested-externs \
 		-Wvla -Wno-overlength-strings -Wunsafe-loop-optimizations \
 		-Wundef -Wsign-compare -Wmissing-include-dirs \
@@ -17,12 +17,11 @@ WARN		:= -Wall -Wextra -Werror -Wshadow -Wformat=2 \
 		-Wcomment -Wdeclaration-after-statement -Wwrite-strings \
 		-Wstack-protector
 
-CFLAGS		?= -ggdb -ansi -O3 -pipe -mtune=generic -fPIC \
-		-fstack-protector --param ssp-buffer-size=4 \
-		$(WARN) $(GLIB_CFLAGS)
+CFLAGS		+= -O3 -pipe -mtune=generic -fPIC -ansi $(WARN) $(PKG_CFLAGS) \
+		   -fstack-protector --param ssp-buffer-size=4
 
-DEFS		?= -D_POSIX_C_SOURCE=200112L -D_FORTIFY_SOURCE=2
-LDFLAGS		?= -Wl,--as-needed -Wl,-z,relro -Wl,-z,now $(GLIB_LDFLAGS)
+DEFS		+= -D_POSIX_C_SOURCE=200112L -D_FORTIFY_SOURCE=2
+LDFLAGS		+= -Wl,--as-needed -Wl,-z,relro -Wl,-z,now $(PKG_LDFLAGS)
 
 SRC		:= $(wildcard src/*.c)
 OBJ		:= $(patsubst %.c,%.o,$(SRC))
