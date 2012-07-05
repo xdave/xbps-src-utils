@@ -1,3 +1,8 @@
+#include <stdlib.h>
+#include <string.h>
+#include <xbps_api.h>
+#include <glib/gprintf.h>
+
 #include "rcv.h"
 
 rcv_t *

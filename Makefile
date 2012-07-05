@@ -1,19 +1,21 @@
-NAME		:= repo-checkvers
+NAME		:= xbps-repo-checkvers
 
 PKG_STATIC	:= # --static
 STATIC		:= # -static
 
-GLIB_CFLAGS	:= $(shell pkg-config --cflags glib-2.0)
-GLIB_LDFLAGS	:= $(shell pkg-config --libs $(PKG_STATIC) glib-2.0)
+PKGS		:= glib-2.0 libxbps
+
+GLIB_CFLAGS	:= $(shell pkg-config --cflags $(PKGS))
+GLIB_LDFLAGS	:= $(shell pkg-config --libs $(PKG_STATIC) $(PKGS))
 
 WARN		:= -Wall -Wextra -Werror -Wshadow -Wformat=2 \
 		-Wmissing-prototypes -Wmissing-declarations -Wnested-externs \
 		-Wvla -Wno-overlength-strings -Wunsafe-loop-optimizations \
 		-Wundef -Wsign-compare -Wmissing-include-dirs \
 		-Wold-style-definition -Winit-self -Wredundant-decls \
-		-Wfloat-equal -Wmissing-noreturn -Wcast-align -Wcast-qual \
-		-Wpointer-arith -Wcomment -Wdeclaration-after-statement \
-		-Wwrite-strings -Wstack-protector
+		-Wfloat-equal -Wcast-align -Wcast-qual -Wpointer-arith \
+		-Wcomment -Wdeclaration-after-statement -Wwrite-strings \
+		-Wstack-protector
 
 CFLAGS		?= -ggdb -ansi -O3 -pipe -mtune=generic -fPIC \
 		-fstack-protector --param ssp-buffer-size=4 \
