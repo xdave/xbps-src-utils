@@ -14,7 +14,11 @@ rcv_parse_tmpl(struct xbps_handle *xh, const gchar *file)
 	const gchar *replacements[] = { "$", "{", "}", "\"", "'" };
 
 	r->pkgd = xbps_rpool_find_pkg(xh, r->pkgname, false, true);
-	if (r->pkgd == NULL) { return; }
+	if (r->pkgd == NULL) {
+		/*fprintf(stderr, "WARNING: Missing a binpkg for '%s'!\n",
+			r->pkgname);*/
+		return;
+	}
 	prop_dictionary_get_cstring_nocopy(r->pkgd, "version", &r->repover);
 
 	g_file_get_contents(file, &data, &len, &r->err);
@@ -43,9 +47,9 @@ rcv_parse_tmpl(struct xbps_handle *xh, const gchar *file)
 		(const gchar*)g_hash_table_lookup(r->ht, "version"),
 		(const gchar*)g_hash_table_lookup(r->ht, "revision"));
 	if (xbps_cmpver(r->repover, (const gchar *)srcpkgver) == -1) {
-		printf("pkgname: %s ", r->pkgname);
-		printf("repover: %s ", r->repover);
-		printf("srcpkgver: %s\n", (const gchar *)srcpkgver);
+		fprintf(stdout, "pkgname: %s ", r->pkgname);
+		fprintf(stdout, "repover: %s ", r->repover);
+		fprintf(stdout, "srcpkgver: %s\n", (const gchar *)srcpkgver);
 	}
 
 	g_hash_table_remove_all(r->ht);
