@@ -8,30 +8,15 @@
 int
 main(int argc, char** argv)
 {
-	struct xbps_handle xh;
 	int rv;
+	struct xbps_handle xh;
 
-	rcv_t *r = rcv_init(argv[0]);
-	if (argc < 2) rcv_usage(r);
-	r->srcpkgs = argv[1];
-
-	r->dir_p = g_dir_open(r->srcpkgs, 0, &r->err);
-	if (r->err != NULL) {
-		g_fprintf(stderr, "%s\n", r->err->message);
-		rcv_usage(r);
-	}
-
-	if (g_strrstr(r->srcpkgs, "srcpkgs") == NULL) {
-		g_dir_close(r->dir_p);
-		g_fprintf(stderr, "Error: %s\n",
-			  "This doesn't appear to be a srcpkgs directory.");
-		rcv_usage(r);
-	}
+	r = rcv_init(argc, argv);
 
 	memset(&xh, 0, sizeof(xh));
 	if ((rv = xbps_init(&xh)) != 0) {
 		g_fprintf(stderr, "xbps_init() failed: %s\n", strerror(rv));
-		rcv_free(r);
+		rcv_free();
 		exit(EXIT_FAILURE);
 	}
 
@@ -48,7 +33,7 @@ main(int argc, char** argv)
 				    g_strcmp0(r->pkgname, "apache-mpm-worker") != 0 &&
 				    g_strcmp0(r->pkgname, "gvim") != 0 &&
 				    g_strcmp0(r->pkgname, "poppler-qt4") != 0) {
-					rcv_parse_tmpl(r, &xh, r->tmpl);
+					rcv_parse_tmpl(&xh, r->tmpl);
 				}
 			} else {
 				g_fprintf(stderr, "'%s': %s\n",
@@ -64,6 +49,6 @@ main(int argc, char** argv)
 
 	g_dir_close(r->dir_p);
 	xbps_end(&xh);
-	rcv_free(r);
+	rcv_free();
 	exit(EXIT_SUCCESS);
 }

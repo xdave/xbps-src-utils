@@ -8,16 +8,23 @@ typedef struct rcv_t {
 	const gchar *progname;
 	const gchar *pkgname;
 	const gchar *srcpkgs;
+	const gchar *repover;
 	gchar *path;
 	gchar *tmpl;
 	GDir *dir_p;
 	GError *err;
+	GRegex *regex;
+	GMatchInfo *match_info;
+	GHashTable *ht;
+	prop_dictionary_t pkgd;
 } rcv_t;
 
-rcv_t *rcv_init(const gchar *);
-void rcv_free(rcv_t *);
-void rcv_parse_tmpl(rcv_t *, struct xbps_handle *, const gchar *);
-void rcv_usage(rcv_t *);
+rcv_t *r;
+
+rcv_t *rcv_init(gint, gchar **);
+void rcv_free(void);
+void rcv_parse_tmpl(struct xbps_handle *, const gchar *);
+void rcv_usage(void);
 
 gchar *str_replace(const gchar *, const gchar *, const gchar *);
 

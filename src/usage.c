@@ -4,7 +4,7 @@
 #include "rcv.h"
 
 void
-rcv_usage(rcv_t *r)
+rcv_usage(void)
 {
 	g_printf(
 "Usage: %s <dir>\n"
@@ -16,7 +16,7 @@ rcv_usage(rcv_t *r)
 "in the XBPS repositories registered in your `xbps.conf' with the latest \n"
 "available versions of them in the source package tree\n\n",
 		r->progname);
-	rcv_free(r);
+	rcv_free();
 	exit(EXIT_FAILURE);
 }
 
