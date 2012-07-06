@@ -21,7 +21,7 @@ CFLAGS		+= -O2 -pipe -mtune=generic -fPIC -ansi $(WARN) $(PKG_CFLAGS) \
 		   -fstack-protector --param ssp-buffer-size=4
 
 DEFS		+= -D_POSIX_C_SOURCE=200112L -D_FORTIFY_SOURCE=2
-LDFLAGS		+= -Wl,--as-needed -Wl,-z,relro -Wl,-z,now $(PKG_LDFLAGS)
+LDFLAGS		+= -Wl,--as-needed $(PKG_LDFLAGS)
 
 SRC		:= $(wildcard src/*.c)
 OBJ		:= $(patsubst %.c,%.o,$(SRC))
