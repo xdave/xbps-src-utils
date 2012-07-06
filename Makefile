@@ -1,38 +1,49 @@
-NAME		:= xbps-repo-checkvers
+NAME        := xbps-repo-checkvers
 
-PKG_STATIC	:= # --static
-STATIC		:= # -static
+SRC         := $(wildcard src/*.c)
+OBJ         := $(patsubst %.c,%.o,$(SRC))
 
-PKGS		:= glib-2.0 libxbps
+STATIC      +=
+PKG_STATIC  +=
 
-PKG_CFLAGS	:= $(shell pkg-config --cflags $(PKGS))
-PKG_LDFLAGS	:= $(shell pkg-config --libs $(PKG_STATIC) $(PKGS))
+PKGS        += glib-2.0 libxbps
 
-WARN		+= -Wall -Wextra -Werror -Wshadow -Wformat=2 \
-		-Wmissing-prototypes -Wmissing-declarations -Wnested-externs \
-		-Wvla -Wno-overlength-strings -Wunsafe-loop-optimizations \
-		-Wundef -Wsign-compare -Wmissing-include-dirs \
-		-Wold-style-definition -Winit-self -Wredundant-decls \
-		-Wfloat-equal -Wcast-align -Wcast-qual -Wpointer-arith \
-		-Wcomment -Wdeclaration-after-statement -Wwrite-strings \
-		-Wstack-protector
+PKG_CFLAGS  += $(shell pkg-config --cflags $(PKGS))
+PKG_LDFLAGS += $(shell pkg-config --libs $(PKG_STATIC) $(PKGS))
 
-CFLAGS		+= -O2 -pipe -mtune=generic -fPIC -ansi $(WARN) $(PKG_CFLAGS) \
-		   -fstack-protector --param ssp-buffer-size=4
+GCC_WARN    += -Wunsafe-loop-optimizations
+WARN        += -Wall -Wextra -Werror -Wshadow -Wformat=2 -Wmissing-prototypes \
+	       -Wmissing-declarations -Wnested-externs -Wvla \
+	       -Wno-overlength-strings -Wundef -Wsign-compare \
+	       -Wmissing-include-dirs -Wold-style-definition -Winit-self \
+	       -Wredundant-decls -Wfloat-equal -Wcast-align -Wcast-qual \
+	       -Wpointer-arith -Wcomment -Wdeclaration-after-statement \
+	       -Wwrite-strings -Wstack-protector
 
-DEFS		+= -D_POSIX_C_SOURCE=200112L -D_FORTIFY_SOURCE=2
-LDFLAGS		+= -Wl,--as-needed $(PKG_LDFLAGS)
+GCC_CFLAGS  += --param ssp-buffer-size=4
+CFLAGS      += -ansi -O2 -pipe -mtune=generic -fstack-protector -fPIC \
+	       $(PKG_CFLAGS)
 
-SRC		:= $(wildcard src/*.c)
-OBJ		:= $(patsubst %.c,%.o,$(SRC))
+DEFS        += -D_POSIX_C_SOURCE=200112L -D_FORTIFY_SOURCE=2
+
+LDFLAGS     += $(PKG_LDFLAGS) -Wl,--as-needed
+
+# this makes clang shut up
+COMPILER=$(shell $(CC) -v 2>&1 | grep version | awk '{print $$1}')
+ifeq ($(COMPILER),gcc)
+  WARN   += $(GCC_WARN)
+  CFLAGS += $(GCC_CFLAGS)
+endif
 
 all: $(NAME)
 
 $(NAME): $(OBJ)
-	$(CC) $(STATIC) $^ $(LDFLAGS) -o $@
+	@echo "[CCLD]	$@"
+	@$(CC) $(STATIC) $^ $(LDFLAGS) -o $@
 
 %.o: %.c
-	$(CC) -c $< $(CFLAGS) -Iinclude $(DEFS) -o $@
+	@echo "[CC]	$<"
+	@$(CC) -c $< $(CFLAGS) $(WARN) $(DEFS) -Iinclude -o $@
 
 clean:
 	$(RM) $(NAME) $(OBJ)
