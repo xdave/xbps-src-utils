@@ -14,6 +14,7 @@ rcv_init(gint argc, gchar **argv)
 	r->regex = g_regex_new("^(__?[A-z]+|revision|version)=.*$",
 			G_REGEX_MULTILINE, 0, NULL);
 	r->ht = g_hash_table_new_full(g_str_hash, hash_equal, g_free, g_free);
+	r->utc = g_date_time_new_now_utc();
 
 	if (argc < 2) rcv_usage();
 	r->srcpkgs = argv[1];
@@ -31,6 +32,7 @@ rcv_init(gint argc, gchar **argv)
 		rcv_usage();
 	}
 
+
 	return r;
 }
 
@@ -40,5 +42,6 @@ rcv_free(void)
 	if (r->err != NULL) g_error_free(r->err);
 	g_regex_unref(r->regex);
 	g_hash_table_destroy(r->ht);
+	g_date_time_unref(r->utc);
 	g_free(r);
 }

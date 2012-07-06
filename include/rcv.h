@@ -16,6 +16,7 @@ typedef struct rcv_t {
 	GRegex *regex;
 	GMatchInfo *match_info;
 	GHashTable *ht;
+	GDateTime *utc;
 	prop_dictionary_t pkgd;
 } rcv_t;
 
@@ -28,8 +29,10 @@ void rcv_usage(void);
 
 gchar *str_replace(const gchar *, const gchar *, const gchar *);
 
+void replace_shell_vars(gpointer, gpointer, gpointer);
 void replace_in_version(GHashTable *, const gchar *, const gchar *);
 gboolean hash_equal(gconstpointer, gconstpointer);
-void replace_shell_vars(gpointer, gpointer, gpointer);
+
+void check_gerror(GError *);
 
 #endif /* RCV_H */

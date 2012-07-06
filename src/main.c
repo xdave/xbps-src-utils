@@ -1,6 +1,5 @@
-#include <errno.h>
 #include <glib.h>
-#include <glib/gprintf.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include "rcv.h"
@@ -15,7 +14,7 @@ main(int argc, char** argv)
 
 	memset(&xh, 0, sizeof(xh));
 	if ((rv = xbps_init(&xh)) != 0) {
-		g_fprintf(stderr, "xbps_init() failed: %s\n", strerror(rv));
+		fprintf(stderr, "xbps_init() failed: %s\n", strerror(rv));
 		rcv_free();
 		exit(EXIT_FAILURE);
 	}
@@ -38,7 +37,7 @@ main(int argc, char** argv)
 					rcv_parse_tmpl(&xh, r->tmpl);
 				}
 			} else {
-				g_fprintf(stderr, "'%s': %s\n",
+				fprintf(stderr, "'%s': %s\n",
 					  r->tmpl, strerror(ENOENT));
 				g_free(r->tmpl);
 				g_free(r->path);
