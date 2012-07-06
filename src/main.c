@@ -32,6 +32,8 @@ main(int argc, char** argv)
 				if (g_strcmp0(r->pkgname, "apache-mpm-event") != 0 &&
 				    g_strcmp0(r->pkgname, "apache-mpm-worker") != 0 &&
 				    g_strcmp0(r->pkgname, "gvim") != 0 &&
+				    g_strcmp0(r->pkgname, "vim-x11") != 0 &&
+				    g_strcmp0(r->pkgname, "cyrus-sasl") != 0 &&
 				    g_strcmp0(r->pkgname, "poppler-qt4") != 0) {
 					rcv_parse_tmpl(&xh, r->tmpl);
 				}
