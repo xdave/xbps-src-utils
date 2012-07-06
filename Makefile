@@ -4,51 +4,99 @@ SRC         := $(wildcard src/*.c)
 OBJ         := $(SRC:%.c=%.o)
 DEP         := $(SRC:%.c=%.d)
 
-STATIC      +=
-PKG_STATIC  +=
+# FIXME: Update pkgconfig file for libxbps
+EXTRA_PKGS  += proplib libarchive libconfuse
+PKGS        += glib-2.0 libxbps $(EXTRA_PKGS)
 
-PKGS        += glib-2.0 libxbps
+STC         := -Wl,-Bstatic
+DYN         := -Wl,-Bdynamic
+
+NOSTATIC    +=
+
+ifneq ($(NOSTATIC),)
+  STC :=
+  DYN :=
+endif
 
 PKG_CFLAGS  += $(shell pkg-config --cflags $(PKGS))
-PKG_LDFLAGS += $(shell pkg-config --libs $(PKG_STATIC) $(PKGS))
+PKG_LDFLAGS += $(STC) $(shell pkg-config --libs --static $(PKGS)) $(DYN)
+
+PKG_LDFLAGS := $(subst -pthread ,,$(PKG_LDFLAGS))
+PKG_LDFLAGS := $(subst -lpthread ,,$(PKG_LDFLAGS))
+
+# FIXME: Update pkgconfig file for libxbps
+PKG_LDFLAGS := $(subst -lxbps,-lxbps -lfetch -lssl,$(PKG_LDFLAGS))
 
 NODEPS      := clean
 
 GCC_WARN    += -Wunsafe-loop-optimizations \
-	       -pedantic-errors
+	       -Wdouble-promotion \
+	       -Wsync-nand \
+	       -Wsuggest-attribute=pure \
+	       -Wsuggest-attribute=const \
+	       -Wsuggest-attribute=noreturn \
+	       -Wtrampolines \
+	       -Wjump-misses-init \
+	       -Wlogical-op \
+	       -Wvector-operation-performance \
+	       -Wunsuffixed-float-constants
+
 WARN        += -Wall \
 	       -Wextra \
 	       -Werror \
-	       -Wshadow \
+	       -Wfatal-errors \
+	       -pedantic \
+	       -pedantic-errors \
 	       -Wformat=2 \
+	       -Wformat-y2k \
+	       -Wno-format-extra-args \
+	       -Wno-format-zero-length \
+	       -Wformat-nonliteral \
+	       -Wformat-security \
+	       -Wno-cpp \
+	       -Winit-self \
+	       -Wmissing-include-dirs \
+	       -Wswitch-default \
+	       -Wswitch-enum \
+	       -Wno-unused-result \
+	       -Wmissing-format-attribute \
+	       -Wfloat-equal \
+	       -Wdeclaration-after-statement \
+	       -Wundef \
+	       -Wshadow \
+	       -Wbad-function-cast \
+	       -Wcast-qual \
+	       -Wcast-align \
+	       -Wwrite-strings \
+	       -Wconversion \
+	       -Waggregate-return \
+	       -Wstrict-prototypes \
+	       -Wold-style-definition \
 	       -Wmissing-prototypes \
 	       -Wmissing-declarations \
-	       -Wnested-externs \
-	       -Wvla \
-	       -Wno-overlength-strings \
-	       -Wundef \
-	       -Wsign-compare \
-	       -Wmissing-include-dirs \
-	       -Wold-style-definition \
-	       -Winit-self \
+	       -Wpacked \
 	       -Wredundant-decls \
-	       -Wfloat-equal \
-	       -Wcast-align \
-	       -Wcast-qual \
-	       -Wpointer-arith \
-	       -Wcomment \
-	       -Wdeclaration-after-statement \
-	       -Wwrite-strings \
-	       -Wstack-protector
+	       -Wnested-externs \
+	       -Winline \
+	       -Wdisabled-optimization \
+	       -fstack-protector -Wstack-protector \
+	       -Woverlength-strings
+
+OPT         += -O2 -pipe -mtune=generic -fPIC -finline-functions -ffast-math \
+	       -ftree-loop-linear -floop-strip-mine -floop-block \
+	       -fgraphite-identity -floop-parallelize-all \
+	       -ftree-loop-if-convert -ftree-loop-if-convert-stores \
+	       -ftree-loop-distribution -ftree-loop-distribute-patterns \
+	       -ftracer
 
 GCC_CFLAGS  += --param ssp-buffer-size=4
-CFLAGS      += -ansi -O2 -pipe -mtune=generic -fstack-protector -fPIC \
-	       $(PKG_CFLAGS)
+CFLAGS      += -ansi $(OPT) $(PKG_CFLAGS)
 
-DEFS        += -D_POSIX_C_SOURCE=200112L \
+DEFS        += -D_XOPEN_SOURCE=700 \
 	       -D_FORTIFY_SOURCE=2
+               #-D_POSIX_C_SOURCE=200112L
 
-LDFLAGS     += $(PKG_LDFLAGS) -Wl,--as-needed
+LDFLAGS     += $(PKG_LDFLAGS) -pthread -ldl -Wl,--as-needed
 
 # this makes clang shut up
 COMPILER=$(shell $(CC) -v 2>&1 | grep version | awk '{print $$1}')
@@ -62,7 +110,7 @@ all: $(NAME)
 
 $(NAME): $(OBJ)
 	@echo "[CCLD]	$@"
-	@$(CC) $(STATIC) $^ $(LDFLAGS) -o $@
+	@$(CC) $^ $(LDFLAGS) -o $@
 
 %.o: %.c
 	@echo "[CC]	$<"

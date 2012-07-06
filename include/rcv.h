@@ -25,7 +25,7 @@ rcv_t *r;
 rcv_t *rcv_init(gint, gchar **);
 void rcv_free(void);
 void rcv_parse_tmpl(struct xbps_handle *, const gchar *);
-void rcv_usage(void);
+void rcv_usage(void) __attribute__((noreturn));
 
 gchar *str_replace(const gchar *, const gchar *, const gchar *);
 
