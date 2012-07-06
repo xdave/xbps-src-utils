@@ -49,16 +49,12 @@ WARN        += -Wall \
 	       -pedantic-errors \
 	       -Wformat=2 \
 	       -Wformat-y2k \
-	       -Wno-format-extra-args \
-	       -Wno-format-zero-length \
 	       -Wformat-nonliteral \
 	       -Wformat-security \
-	       -Wno-cpp \
 	       -Winit-self \
 	       -Wmissing-include-dirs \
 	       -Wswitch-default \
 	       -Wswitch-enum \
-	       -Wno-unused-result \
 	       -Wmissing-format-attribute \
 	       -Wfloat-equal \
 	       -Wdeclaration-after-statement \
@@ -82,12 +78,7 @@ WARN        += -Wall \
 	       -fstack-protector -Wstack-protector \
 	       -Woverlength-strings
 
-OPT         += -O2 -pipe -mtune=generic -fPIC -finline-functions -ffast-math \
-	       -ftree-loop-linear -floop-strip-mine -floop-block \
-	       -fgraphite-identity -floop-parallelize-all \
-	       -ftree-loop-if-convert -ftree-loop-if-convert-stores \
-	       -ftree-loop-distribution -ftree-loop-distribute-patterns \
-	       -ftracer
+OPT         += -O2 -pipe -mtune=generic -fPIC
 
 GCC_CFLAGS  += --param ssp-buffer-size=4
 CFLAGS      += -ansi $(OPT) $(PKG_CFLAGS)
