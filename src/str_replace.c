@@ -14,8 +14,8 @@ str_replace(const gchar *orig, const gchar *pat, const gchar *repl)
 
 	const gchar *oriptr = orig;
 	const gchar *patloc;
-	char *returned;
-	char *retptr;
+	gchar *returned;
+	gchar *retptr;
 
 	/* Copy input to output if this is a useless call */
 	if (g_strcmp0(pat, repl) == 0)
