@@ -1,7 +1,11 @@
 NAME        := xbps-repo-checkvers
 
+SUFFIXES    += .d
+NODEPS      := clean
+
 SRC         := $(wildcard src/*.c)
-OBJ         := $(patsubst %.c,%.o,$(SRC))
+OBJ         := $(SRC:%.c=%.o)
+DEP         := $(SRC:%.c=%.d)
 
 STATIC      +=
 PKG_STATIC  +=
@@ -11,7 +15,7 @@ PKGS        += glib-2.0 libxbps
 PKG_CFLAGS  += $(shell pkg-config --cflags $(PKGS))
 PKG_LDFLAGS += $(shell pkg-config --libs $(PKG_STATIC) $(PKGS))
 
-GCC_WARN    += -Wunsafe-loop-optimizations
+GCC_WARN    += -Wunsafe-loop-optimizations -pedantic-errors
 WARN        += -Wall -Wextra -Werror -Wshadow -Wformat=2 -Wmissing-prototypes \
 	       -Wmissing-declarations -Wnested-externs -Wvla \
 	       -Wno-overlength-strings -Wundef -Wsign-compare \
@@ -41,11 +45,19 @@ $(NAME): $(OBJ)
 	@echo "[CCLD]	$@"
 	@$(CC) $(STATIC) $^ $(LDFLAGS) -o $@
 
-%.o: %.c
+%.d: %.c
+	@echo "[DEP]	$@"
+	@$(CC) $(DEFS) -Iinclude -MM -MT '$(<:%.c=%.o)' $< -MF $@
+
+%.o: %.c %.d
 	@echo "[CC]	$<"
 	@$(CC) -c $< $(CFLAGS) $(WARN) $(DEFS) -Iinclude -o $@
 
+ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(NODEPS))))
+   -include $(DEP)
+endif
+
 clean:
-	$(RM) $(NAME) $(OBJ)
+	$(RM) $(NAME) $(OBJ) $(DEP)
 
 .PHONY: all clean
