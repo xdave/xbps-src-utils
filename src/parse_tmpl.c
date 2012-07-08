@@ -40,7 +40,8 @@ rcv_parse_tmpl(struct xbps_handle *xh, const gchar *file)
 	{
 		guint i = 0;
 		for (;i < G_N_ELEMENTS(replacements); i++)
-			replace_in_version(r->ht, replacements[i], "");
+			g_hash_str_replace(r->ht, "version",
+					   replacements[i], "");
 	}
 
 	srcpkgver = g_strdup_printf("%s_%s",

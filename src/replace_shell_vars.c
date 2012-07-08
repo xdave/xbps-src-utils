@@ -12,8 +12,9 @@ replace_shell_vars(gpointer key, gpointer val, gpointer data)
 	const gchar *datef = "%Y%m%d";
 
 	if (varname[0] == '_')
-		replace_in_version(r->ht, varname, value);
+		g_hash_str_replace(r->ht, "version", varname, value);
 
 	if (version != NULL && g_strcmp0(version, date) == 0)
-		replace_in_version(r->ht, date, g_date_time_format(utc, datef));
+		g_hash_str_replace(r->ht, "version", date,
+				   g_date_time_format(utc, datef));
 }

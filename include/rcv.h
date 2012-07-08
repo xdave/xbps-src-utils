@@ -30,7 +30,8 @@ void rcv_usage(void) __attribute__((noreturn));
 gchar *str_replace(const gchar *, const gchar *, const gchar *);
 
 void replace_shell_vars(gpointer, gpointer, gpointer);
-void replace_in_version(GHashTable *, const gchar *, const gchar *);
+void g_hash_str_replace(GHashTable *, const gchar *key,
+		        const gchar *, const gchar *);
 gboolean hash_equal(gconstpointer, gconstpointer);
 
 void check_gerror(GError *);
