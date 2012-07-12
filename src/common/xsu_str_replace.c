@@ -1,9 +1,9 @@
 #include <glib.h>
 #include <string.h>
-#include "rcv.h"
+#include "xsu_api.h"
 
 gchar *
-str_replace(const gchar *orig, const gchar *pat, const gchar *repl)
+xsu_str_replace(const gchar *orig, const gchar *pat, const gchar *repl)
 {
 	size_t orilen = strlen(orig);
 	size_t patlen = strlen(pat);

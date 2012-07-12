@@ -1,13 +1,14 @@
 #include <glib.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include "rcv.h"
+#include "xsu_api.h"
 
 void
-check_gerror(GError *err)
+xsu_gerror_check(GError *err)
 {
 	if (err != NULL) {
 		fprintf(stderr, "%s\n", err->message);
-		rcv_free();
+		xsu_checkvers_free();
 		exit(EXIT_FAILURE);
 	}
 }

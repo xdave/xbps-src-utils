@@ -1,9 +1,9 @@
+#include <stdio.h>
 #include <stdlib.h>
-
-#include "rcv.h"
+#include "xsu_api.h"
 
 void
-rcv_usage(void)
+xsu_checkvers_usage(void)
 {
 	printf(
 "Usage: %s <dir>\n"
@@ -14,8 +14,8 @@ rcv_usage(void)
 "system by comparing the versions of the binary packages which are available \n"
 "in the XBPS repositories registered in your `xbps.conf' with the latest \n"
 "available versions of them in the source package tree.\n\n",
-		r->progname);
-	rcv_free();
+		checkvers->progname);
+	xsu_checkvers_free();
 	exit(EXIT_FAILURE);
 }
 

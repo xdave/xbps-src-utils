@@ -1,8 +1,14 @@
-NAME        := xbps-repo-checkvers
+ALL_SRC       := $(shell find src -type f -iname '*.c')
+DEPS          := $(ALL_SRC:%.c=%.d)
 
-SRC         := $(wildcard src/*.c)
-OBJ         := $(SRC:%.c=%.o)
-DEP         := $(SRC:%.c=%.d)
+CHECKVERS     := xbps-repo-checkvers
+CHECKVERS_SRC := $(shell find src/checkvers -type f -iname '*.c')
+CHECKVERS_OBJ := $(CHECKVERS_SRC:%.c=%.o)
+
+COMMON_SRC    := $(shell find src/common -type f -iname '*.c')
+COMMON_OBJ    := $(COMMON_SRC:%.c=%.o)
+
+INC           := include
 
 # FIXME: Update pkgconfig file for libxbps
 EXTRA_PKGS  += proplib libarchive libconfuse
@@ -44,7 +50,6 @@ GCC_WARN    += -Wunsafe-loop-optimizations \
 WARN        += -Wall \
 	       -Wextra \
 	       -Werror \
-	       -Wfatal-errors \
 	       -pedantic \
 	       -pedantic-errors \
 	       -Wformat=2 \
@@ -85,7 +90,7 @@ CFLAGS      += -ansi $(OPT) $(PKG_CFLAGS)
 
 DEFS        += -D_XOPEN_SOURCE=700 \
 	       -D_FORTIFY_SOURCE=2
-               #-D_POSIX_C_SOURCE=200112L
+	       #-D_POSIX_C_SOURCE=200112L
 
 LDFLAGS     += $(PKG_LDFLAGS) -pthread -ldl -Wl,--as-needed
 
@@ -97,21 +102,29 @@ ifeq ($(COMPILER),gcc)
 endif
 
 # Targets
-all: $(NAME)
+all: $(CHECKVERS)
 
-$(NAME): $(OBJ)
+$(CHECKVERS): $(COMMON_OBJ) $(CHECKVERS_OBJ)
 	@echo "[CCLD]	$@"
 	@$(CC) $^ $(LDFLAGS) -o $@
 
-%.o: %.c
+src/checkvers/%.o: src/checkvers/%.c
 	@echo "[CC]	$<"
-	@$(CC) -Iinclude -MMD $(CFLAGS) $(WARN) $(DEFS) -c $< -o $@
+	@$(CC) -I$(INC) $(CFLAGS) $(WARN) $(DEFS) -c $< -o $@
+
+src/common/%.o: src/common/%.c
+	@echo "[CC]	$<"
+	@$(CC) -I$(INC) $(CFLAGS) $(WARN) $(DEFS) -c $< -o $@
+
+%.d: %.c
+	@echo "[CPP]	$@"
+	@$(CPP) -MM -MG -nostdinc -I$(INC) -c $< -o $@
 
 ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(NODEPS))))
-   -include $(DEP)
+   -include $(DEPS)
 endif
 
 clean:
-	$(RM) $(NAME) $(OBJ) $(DEP)
+	$(RM) $(DEPS) $(CHECKVERS) $(CHECKVERS_OBJ) $(COMMON_OBJ)
 
 .PHONY: all clean
