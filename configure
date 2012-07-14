@@ -1,0 +1,136 @@
+#!/bin/bash
+
+#SUBDIRS="common xbps-repo-checkvers"
+SUBDIRS="`/bin/ls -F | grep / | awk -F/ '{print $1}' | xargs`"
+PREFIX=/usr/local
+DEFS="-D_FORTIFY_SOURCE=1 -D_XOPEN_SOURCE=700"
+WARN="-Wstack-protector"
+PKGS="glib-2.0 gobject-2.0 gthread-2.0 gio-2.0 gee-1.0 libxbps"
+CFLAGS="${CFLAGS}"
+LDFLAGS="${LDFLAGS}"
+VPKGS=
+PKG_CFLAGS=
+PKG_LDFLAGS=
+
+test ${CFLAGS} || CFLAGS="-O2 -pipe -mtune=generic"
+test ${LDFLAGS} || LDFLAGS="-Wl,--as-needed"
+
+CFLAGS="${CFLAGS} -fstack-protector -fPIC"
+
+for d in ${SUBDIRS}; do
+	CFLAGS="${CFLAGS} -I../${d}"
+done
+
+get_option() {
+	echo "${1}" | sed -e "s|--${2}=||"
+}
+
+check_program() {
+	local p=${1}
+	printf "Checking for '${p}' program... "
+	${p} --version 2>/dev/null
+	[ $? -eq 0 ] || {
+		printf "nope.\nERROR: Cannot find the '${p}' program on your "
+		printf "system!\nAborting.\n"
+		exit 1
+	}
+}
+
+check_pkg() {
+	local pkg=${1}
+	printf "Checking for '%s' package... " ${pkg}
+	pkg-config --modversion ${pkg} 2>/dev/null
+	if [ ! $? -eq 0 ]; then
+		printf "nope.\nERROR: Cannot find the '${pkg}' package on your "
+		printf "system!\nAborting.\n"
+		exit 1
+	fi
+}
+
+gen_vala() {
+	local name=${1}
+	local _common
+	[ "${name}" = "common" ] &&  _common="" ||  _common="--pkg=common"
+	valac --library=${name} -C -H ${name}/${name}.h --use-header=${name}.h \
+		-b ${name} -d ${name} --vapidir=common --includedir=. ${VPKGS} \
+		${_common} ${name}/*.vala
+}
+
+for arg in $*; do
+	case ${arg} in
+	--help|-h)
+		printf "Usage $0 [options]\n"
+		printf "  --help		(this message)\n"
+		printf "  --prefix=PREFIX	[default=/usr/local]\n"
+		exit 0
+		;;
+	--prefix=*)
+		PREFIX=`get_option ${arg} prefix`
+		test ${PREFIX} || {
+			printf "Can't have an empty prefix!\n"
+			exit 1
+		}
+		;;
+	*)
+		_foobar=`echo ${arg} | sed -e "s|=.*||"`
+		printf "Unrecognized option: '%s'.\n" ${_foobar}
+		exit 1
+	esac
+done
+
+###############################################################################
+
+check_program install | grep -m1 -E "\."
+check_program pkg-config
+check_program valac
+
+for pkg in ${PKGS}; do
+	check_pkg ${pkg}
+	[ ! "${pkg}" = "gthread-2.0" ] && VPKGS="${VPKGS} --pkg=${pkg}"
+done
+
+VPKGS="${VPKGS} --pkg=posix --pkg=libxbps"
+
+PKG_CFLAGS="${PKG_CFLAGS} `pkg-config --cflags ${PKGS}`"
+PKG_LDFLAGS="${PKG_LDFLAGS} `pkg-config --libs ${PKGS}`"
+
+for subdir in ${SUBDIRS}; do
+	printf "Generating sources for '${subdir}'... "
+	gen_vala ${subdir}
+	[ $? -eq 0 ] || exit 1
+	printf "done.\n"
+	printf "Generating '${subdir}/Makefile'... "
+	sed -e "s|@PREFIX@|${PREFIX}|g" Makefile.in > ${subdir}/Makefile
+	printf "DEFS    += ${DEFS}\n\n" >> ${subdir}/Makefile
+	printf "WARN    += ${WARN}\n\n" >> ${subdir}/Makefile
+	printf "CFLAGS  += ${CFLAGS} \$(WARN) \$(DEFS)\n" >> ${subdir}/Makefile
+	printf "CFLAGS  += ${PKG_CFLAGS}\n\n" >> ${subdir}/Makefile
+	printf "LDFLAGS += ${PKG_LDFLAGS}\n\n" >> ${subdir}/Makefile
+	printf "LDFLAGS += ${LDFLAGS}\n\n" >> ${subdir}/Makefile
+	printf "NAME    := %s\n\n" ${subdir} >> ${subdir}/Makefile
+	printf "include rules.mk\n" >> ${subdir}/Makefile
+	printf "done.\n"
+done
+
+printf "Generating 'Makefile'... "
+sed -e "s|@PREFIX@|${PREFIX}|g" Makefile.in > Makefile
+printf "SUBDIRS += ${SUBDIRS}\n\n" >> Makefile
+
+printf "all:\n" >> Makefile
+printf "\t+@for d in ${SUBDIRS}; do make -C \$\${d}; done\n\n" >> Makefile
+
+printf "install:\n" >> Makefile
+printf "\t+@for d in ${SUBDIRS}; do make -C \$\${d} install; done\n\n" >> Makefile
+
+printf "uninstall:\n" >> Makefile
+printf "\t+@for d in ${SUBDIRS}; do make -C \$\${d} uninstall; done\n\n" >> Makefile
+
+printf "clean:\n" >> Makefile
+printf "\t+@for d in ${SUBDIRS}; do make -C \$\${d} clean; done\n\n" >> Makefile
+
+printf "distclean:\n" >> Makefile
+printf "\t+@for d in ${SUBDIRS}; do make -C \$\${d} distclean; done\n" >> Makefile
+printf "\trm -f Makefile\n\n" >> Makefile
+
+printf ".PHONY: all install uninstall clean distclean\n\n" >> Makefile
+printf "done.\n"

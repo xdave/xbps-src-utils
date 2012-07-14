@@ -1,6 +1,6 @@
 *.o
 *.d
 *~
-xbps-repo-checkvers
+xbps-repo-checkvers/xbps-repo-checkvers
 !*.c
 !*.h
