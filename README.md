@@ -6,10 +6,11 @@
   latest available versions of them in the source package tree.
 
 1. clone
-2. type: **`$ make`**
-3. type: **`$ make install`**
-4. type: **`$ xbps-repo-checkvers`**
-5. profit!?
+2. type: **`$ ./configure`**
+3. type: **`$ make`**
+4. type: **`$ make install`**
+5. type: **`$ xbps-repo-checkvers`**
+6. profit!?
 
 There also exists a `xbps-src-utils` binary XBPS package for Void GNU/Linux. To
 install it, type **`$ sudo xbps-bin -Sy install xbps-src-utils`** and have fun.
