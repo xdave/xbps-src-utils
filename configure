@@ -1,6 +1,9 @@
 #!/bin/bash
 
-#SUBDIRS="common xbps-repo-checkvers"
+###############################################################################
+# Initialization.
+###############################################################################
+
 SUBDIRS="`/bin/ls -F | grep / | awk -F/ '{print $1}' | xargs`"
 PREFIX=/usr/local
 DEFS="-D_FORTIFY_SOURCE=1 -D_XOPEN_SOURCE=700"
@@ -20,6 +23,10 @@ CFLAGS="${CFLAGS} -fstack-protector -fPIC"
 for d in ${SUBDIRS}; do
 	CFLAGS="${CFLAGS} -I../${d}"
 done
+
+###############################################################################
+# helper funcs.
+###############################################################################
 
 get_option() {
 	echo "${1}" | sed -e "s|--${2}=||"
@@ -51,10 +58,62 @@ gen_vala() {
 	local name=${1}
 	local _common
 	[ "${name}" = "common" ] &&  _common="" ||  _common="--pkg=common"
+	printf "Generating sources for '%s'... " ${subdir}
 	valac --library=${name} -C -H ${name}/${name}.h --use-header=${name}.h \
 		-b ${name} -d ${name} --vapidir=common --includedir=. ${VPKGS} \
 		${_common} ${name}/*.vala
+	[ $? -eq 0 ] || exit 1
+	printf "done.\n"
 }
+
+gen_make_var() {
+	local var=${1}
+	local val=${2}
+	local name=${3}
+	test ${name} && dir="${name}/" || dir=""
+	printf "${var} += ${val}\n" >> ${dir}Makefile
+}
+
+gen_subdir_makefile() {
+	local name=${1}
+	printf "Generating '${name}/Makefile'... "
+	sed -e "s|@PREFIX@|${PREFIX}|g" Makefile.in > ${name}/Makefile
+	gen_make_var "DEFS"    "${DEFS}"        "${name}"
+	gen_make_var "WARN"    "${WARN}"        "${name}"
+	gen_make_var "CFLAGS"  "${CFLAGS}"      "${name}"
+	gen_make_var "CFLAGS"  "\$(WARN)"       "${name}"
+	gen_make_var "CFLAGS"  "\$(DEFS)"       "${name}"
+	gen_make_var "CFLAGS"  "${PKG_CFLAGS}"  "${name}"
+	gen_make_var "LDFLAGS" "${PKG_LDFLAGS}" "${name}"
+	gen_make_var "LDFLAGS" "${LDFLAGS}"     "${name}"
+	gen_make_var "NAME"    "${name}"        "${name}"
+	printf "include rules.mk\n" >> ${name}/Makefile
+	printf "done.\n"
+}
+
+gen_main_make_rules() {
+	local targets="all install uninstall clean distclean"
+	for t in ${targets}; do
+		printf "${t}:\n" >> Makefile
+		printf "\t+@for d in \$(SUBDIRS); do " >> Makefile
+		printf "make -C \$\$d ${t}; " >> Makefile
+		printf "done\n" >> Makefile
+	done
+	printf "\trm -f Makefile\n\n" >> Makefile
+	printf ".PHONY: ${targets}\n\n" >> Makefile
+}
+
+gen_main_makefile() {
+	printf "Generating 'Makefile'... "
+	sed -e "s|@PREFIX@|${PREFIX}|g" Makefile.in > Makefile
+	gen_make_var "SUBDIRS" "${SUBDIRS}"
+	gen_main_make_rules
+	printf "done.\n"
+}
+
+###############################################################################
+# main()
+###############################################################################
 
 for arg in $*; do
 	case ${arg} in
@@ -78,8 +137,6 @@ for arg in $*; do
 	esac
 done
 
-###############################################################################
-
 check_program install | grep -m1 -E "\."
 check_program pkg-config
 check_program valac
@@ -95,42 +152,8 @@ PKG_CFLAGS="${PKG_CFLAGS} `pkg-config --cflags ${PKGS}`"
 PKG_LDFLAGS="${PKG_LDFLAGS} `pkg-config --libs ${PKGS}`"
 
 for subdir in ${SUBDIRS}; do
-	printf "Generating sources for '${subdir}'... "
 	gen_vala ${subdir}
-	[ $? -eq 0 ] || exit 1
-	printf "done.\n"
-	printf "Generating '${subdir}/Makefile'... "
-	sed -e "s|@PREFIX@|${PREFIX}|g" Makefile.in > ${subdir}/Makefile
-	printf "DEFS    += ${DEFS}\n\n" >> ${subdir}/Makefile
-	printf "WARN    += ${WARN}\n\n" >> ${subdir}/Makefile
-	printf "CFLAGS  += ${CFLAGS} \$(WARN) \$(DEFS)\n" >> ${subdir}/Makefile
-	printf "CFLAGS  += ${PKG_CFLAGS}\n\n" >> ${subdir}/Makefile
-	printf "LDFLAGS += ${PKG_LDFLAGS}\n\n" >> ${subdir}/Makefile
-	printf "LDFLAGS += ${LDFLAGS}\n\n" >> ${subdir}/Makefile
-	printf "NAME    := %s\n\n" ${subdir} >> ${subdir}/Makefile
-	printf "include rules.mk\n" >> ${subdir}/Makefile
-	printf "done.\n"
+	gen_subdir_makefile ${subdir}
 done
 
-printf "Generating 'Makefile'... "
-sed -e "s|@PREFIX@|${PREFIX}|g" Makefile.in > Makefile
-printf "SUBDIRS += ${SUBDIRS}\n\n" >> Makefile
-
-printf "all:\n" >> Makefile
-printf "\t+@for d in ${SUBDIRS}; do make -C \$\${d}; done\n\n" >> Makefile
-
-printf "install:\n" >> Makefile
-printf "\t+@for d in ${SUBDIRS}; do make -C \$\${d} install; done\n\n" >> Makefile
-
-printf "uninstall:\n" >> Makefile
-printf "\t+@for d in ${SUBDIRS}; do make -C \$\${d} uninstall; done\n\n" >> Makefile
-
-printf "clean:\n" >> Makefile
-printf "\t+@for d in ${SUBDIRS}; do make -C \$\${d} clean; done\n\n" >> Makefile
-
-printf "distclean:\n" >> Makefile
-printf "\t+@for d in ${SUBDIRS}; do make -C \$\${d} distclean; done\n" >> Makefile
-printf "\trm -f Makefile\n\n" >> Makefile
-
-printf ".PHONY: all install uninstall clean distclean\n\n" >> Makefile
-printf "done.\n"
+gen_main_makefile
