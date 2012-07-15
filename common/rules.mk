@@ -12,10 +12,12 @@ $(NAME).a: $(OBJ)
 
 install:
 
+uninstall:
+
 clean:
 	$(RM) $(OBJ) $(NAME).a
 
 distclean: clean
 	$(RM) $(VALA:%.vala=%.c) $(NAME).h $(NAME).vapi Makefile
 
-.PHONY: all install clean distclean
+.PHONY: all install uninstall clean distclean
