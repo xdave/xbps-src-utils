@@ -54,8 +54,7 @@ parse(string[] argv)
 	try {
 		context.parse(ref argv);
 	} catch (OptionError error) {
-		stderr.printf("%s error: %s", "xbps-repo-checkvers",
-			error.message);
+		stderr.printf("%s error: %s\n", argv[0], error.message);
 		usage();
 	}
 	if (argv.length > 1) {
