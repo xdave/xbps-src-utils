@@ -1,4 +1,4 @@
-# Utilities for xbps-src written in C.
+# Utilities for xbps-src written in Vala/C.
 
 * The `xbps-repo-checkvers` program shows which XBPS binary packages need to be
   rebuilt on your system by comparing the versions of the binary packages which
@@ -7,8 +7,9 @@
 
 1. clone
 2. type: **`$ make`**
-3. type: **`$ ./xbps-repo-checkvers <srcpkgs directory>`**
-4. profit!?
+3. type: **`$ make install`**
+4. type: **`$ xbps-repo-checkvers`**
+5. profit!?
 
 There also exists a `xbps-src-utils` binary XBPS package for Void GNU/Linux. To
 install it, type **`$ sudo xbps-bin -Sy install xbps-src-utils`** and have fun.
