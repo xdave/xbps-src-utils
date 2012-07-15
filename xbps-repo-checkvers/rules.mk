@@ -23,4 +23,4 @@ clean:
 distclean: clean
 	$(RM) $(VALA:%.vala=%.c) $(NAME).h $(NAME).vapi Makefile
 
-.PHONY: all install clean distclean
+.PHONY: all install uninstall clean distclean
