@@ -131,9 +131,13 @@ process_pkg(string srcpkgsdir, bool requested = false)
 		if (requested == true) {
 			stdout.printf("pkgname: %s repover: (NULL) ", pkgname);
 			stdout.printf("[MANUAL]\n");
-		} else { return; }
+		} else {
+			if (args.show_missing) {
+				stdout.printf("%s\n", pkgname);
+			} else { return; }
+		}
 	}
-	if (repover != null && requested == false) {
+	if (repover != null && requested == false && !args.show_missing) {
 		if (pkgname == "apache-mpm-event") return;
 		if (pkgname == "apache-mpm-worker") return;
 		if (pkgname == "poppler-qt4") return;

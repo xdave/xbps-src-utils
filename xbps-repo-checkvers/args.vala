@@ -4,6 +4,7 @@ private OptionContext context;
 private OptionGroup config_group;
 private string utext;
 public bool debug;
+public bool show_missing;
 
 public
 Args()
@@ -38,6 +39,10 @@ create_entries()
 			arg_data = &(chk.distdir), arg = OptionArg.FILENAME,
 			description = "Override xbps-src DISTDIR setting",
 			arg_description = "DIRECTORY"
+		}, OptionEntry() {
+			long_name = "show-missing", short_name = 's',
+			arg_data = &show_missing,
+			description = "Show missing binpkgs for templates"
 		}, OptionEntry()
 
 	});
