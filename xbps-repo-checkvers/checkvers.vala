@@ -140,7 +140,6 @@ process_pkg(string srcpkgsdir, bool requested = false)
 	if (repover != null && requested == false && !args.show_missing) {
 		if (pkgname == "apache-mpm-event") return;
 		if (pkgname == "apache-mpm-worker") return;
-		if (pkgname == "poppler-qt4") return;
 		tmplpath = pkgpath + "/template";
 		version = get_template_version(tmplpath);
 		if (xbps_cmpver(repover, version) == -1) {
