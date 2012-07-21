@@ -4,7 +4,7 @@ public extern string str_replace(string o, string p, string r);
 const string[] cfgs = {
 	"/etc/xbps/xbps-src.conf", "/usr/local/etc/xbps/xbps-src.conf"
 };
-const string[] v = { "XBPS_DISTDIR=", "$HOME" };
+const string[] v = { "XBPS_DISTDIR=", "$HOME", "${HOME}" };
 const string[] vrs = { "version", "revision" };
 const string[] replacements = { "$", "{", "}", "\"", "'" };
 const string ls_subpkgs = "/bin/sh -c \"/bin/ls -F %s|grep /\"";
@@ -56,6 +56,7 @@ config_get_distdir()
 	string line;
 	long v0_len = v[0].length;
 	long v1_len = v[1].length;
+	long v2_len = v[2].length;
 
 	try {
 		var file = File.new_for_path(cfg);
@@ -65,6 +66,8 @@ config_get_distdir()
 				line = line[v0_len:line.length];
 				if (v[1] in line) {
 					line = home + line[v1_len:line.length];
+				} else if (v[2] in line) {
+					line = home + line[v2_len:line.length];
 				}
 				distdir = line;
 				break;
