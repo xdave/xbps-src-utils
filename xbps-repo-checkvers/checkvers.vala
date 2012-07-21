@@ -99,7 +99,8 @@ check_template_versions()
 	try {
 		for (int i = 0; i < templates.length; i++) {
 			string path, n, tmpl;
-			if ("srcpkgs" in templates[i]) {
+			if ("srcpkgs" in templates[i] &&
+			    "/template" in templates[i]) {
 				path = distdir + "/" + templates[i];
 				if (!FileUtils.test(path, FileTest.EXISTS))
 					break;
