@@ -8,7 +8,7 @@ SUBDIRS="`/bin/ls -F | grep / | awk -F/ '{print $1}' | xargs`"
 PKGS="libxbps"
 
 PREFIX=/usr/local
-PREFIX=${PREFIX}/etc
+ETCDIR=${PREFIX}/etc
 CFLAGS="${CFLAGS}"
 LDFLAGS="${LDFLAGS}"
 PKG_CFLAGS=

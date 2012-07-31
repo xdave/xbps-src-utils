@@ -1,8 +1,13 @@
 *.o
 *.d
 *~
-xbps-repo-checkvers
 !*.c
 !*.h
 !*.l
 !*.y
+Makefile
+*_lexer.c
+*_lexer*.h
+*_parser*.c
+*_parser*.h
+xbps-repo-checkvers
