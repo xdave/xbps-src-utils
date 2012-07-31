@@ -12,7 +12,7 @@ chkvers_getopt(chkvers *chk, int *argc, char ***argv)
 {
 	shp s;
 	xgetopt x;
-	int rv, optc;
+	int optc;
 	char *distdirp;
 	char srcpkgdir[BUFSIZ] = {'\0'};
 	char distdir[PATH_MAX] = {'\0'};
@@ -34,7 +34,7 @@ chkvers_getopt(chkvers *chk, int *argc, char ***argv)
 
 	chkvers_find_xbps_src_cfg(chk);
 
-	while ((rv = xgetopts(&x, optc, optv, *argc, *argv)) != -1) {
+	while (xgetopts(&x, optc, optv, *argc, *argv) != -1) {
 		if (x.opt == &optv[0]) {
 			chkvers_end(chk);
 			xopt_usage(&x, optc, optv);
