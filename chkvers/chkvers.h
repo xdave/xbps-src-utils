@@ -27,7 +27,6 @@ struct _chkvers {
 	int xtrace, debug, show_missing;
 };
 
-int chkvers_show_usage(const char *progname);
 int chkvers_init(chkvers *chk);
 chkvers *chkvers_new(void);
 void chkvers_end(chkvers *chk);
