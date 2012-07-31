@@ -1,0 +1,39 @@
+
+all: $(LSRC) $(BSRC) $(TARGET)
+
+$(TARGET): $(OBJ)
+	@echo "[CCLD]	$@"
+	@$(CC) -o $@ $^ -lxbps -lprop
+
+%.o: %.c
+	@echo "[CC]	$@"
+	@case $< in \
+		*_parser.c|*_lexer.c) $(CC) -c $< $(CFLAGS) -o $@ ;; \
+		*) $(CC) -c $< $(CFLAGS) $(WARN) $(GWARN) -o $@ ;; \
+	esac
+
+$(LSRC): $(LX)
+	@echo "[FLEX]	$@ $(@:.c=.h)"
+	@cd $(shell dirname $@) && flex $(shell basename $<)
+
+$(BSRC): $(BSN)
+	@echo "[BISON]	$@ $(@:.c=.h)"
+	@cd $(shell dirname $@) && bison $(shell basename $<)
+
+install: $(TARGET)
+	@mkdir -p -v $(DESTDIR)@PREFIX@/bin
+	@install -m755 -v $(TARGET) $(DESTDIR)@PREFIX@/bin/$(TARGET)
+
+uninstall:
+	@test -f $(DESTDIR)@PREFIX@/bin/$(TARGET) && \
+		$(RM) -v $(DESTDIR)@PREFIX@/bin/$(TARGET)
+
+clean:
+	@$(RM) -v $(TARGET) $(LSRC) $(BSRC) $(LHD) $(BHD) $(OBJ)
+
+distclean: clean
+	@$(RM) -v Makefile
+
+.PHONY: all clean distclean
+.PRECIOUS: $(SRC) $(LX) $(BSN)
+

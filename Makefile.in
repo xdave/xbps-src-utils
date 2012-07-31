@@ -1,1 +1,60 @@
-PREFIX  := $(DESTDIR)@PREFIX@
+PREFIX += $(DESTDIR)@PREFIX@
+
+SRC     += $(shell find -type f -name '*.c')
+LX      += $(shell find -type f -name '*.l')
+BSN     += $(shell find -type f -name '*.y')
+LSRC    += $(LX:.l=.c)
+BSRC    += $(BSN:.y=.c)
+LHD     += $(LX:.l=.h)
+BHD     += $(BSN:.y=.h)
+OBJ     += $(LSRC:.c=.o)
+OBJ     += $(BSRC:.c=.o)
+OBJ     += $(SRC:.c=.o)
+
+GWARN   := -Wunsafe-loop-optimizations \
+	   -Wdouble-promotion \
+	   -Wsync-nand \
+	   -Wsuggest-attribute=const \
+	   -Wsuggest-attribute=pure \
+	   -Wsuggest-attribute=noreturn \
+	   -Wtrampolines \
+	   -Wjump-misses-init \
+	   -Wlogical-op \
+	   -Wvector-operation-performance \
+	   -Wunsuffixed-float-constants
+
+WARN    := -Wall -Wextra -pedantic -Werror -pedantic-errors \
+	   -Wstack-protector \
+	   -Wformat=2 -Wformat-y2k -Wformat-nonliteral -Wformat-security \
+	   -Wmissing-format-attribute \
+	   -Winit-self \
+	   -Wmissing-include-dirs \
+	   -Wmissing-prototypes \
+	   -Wmissing-declarations \
+	   -Wswitch-default -Wswitch-enum \
+	   -Wfloat-equal \
+	   -Wdeclaration-after-statement \
+	   -Wundef \
+	   -Wshadow \
+	   -Wbad-function-cast \
+	   -Wcast-align \
+	   -Wconversion \
+	   -Wwrite-strings \
+	   -Waggregate-return \
+	   -Wstrict-prototypes \
+	   -Wold-style-definition \
+	   -Wpacked \
+	   -Wredundant-decls \
+	   -Wnested-externs \
+	   -Winline \
+	   -Wdisabled-optimization \
+	   -Wstack-protector \
+	   -Woverlength-strings
+
+SSP     += --param ssp-buffer-size=2
+CFLAGS  += -ggdb
+CFLAGS  += -O2 -pipe -mtune=generic -std=c11 -pthread -fPIC
+CFLAGS  += -D__STRICT_ANSI__ -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
+CFLAGS  += -D_FILE_OFFSET_BITS=64 -D_REENTRANT
+CFLAGS  += -D_FORTIFY_SOURCE=2 -fstack-protector $(SSP)
+
