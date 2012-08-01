@@ -33,9 +33,9 @@ chkvers_find_xbps_src_cfg(chkvers *chk)
 	FILE *fp;
 	const char *cfg;
 	const char *locations[] = {
+		ETCDIR "/xbps/xbps-src.conf",
 		"/etc/xbps/xbps-src.conf",
-		"/usr/local/etc/xbps/xbps-src.conf",
-		ETCDIR "/xbps/xbps-src.conf", NULL
+		"/usr/local/etc/xbps/xbps-src.conf", NULL
 	};
 
 	for (;(cfg = (*locations)++);) {
