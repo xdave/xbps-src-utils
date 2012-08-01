@@ -1,7 +1,3 @@
-#include <limits.h>
-#include <stdlib.h>
-#include <string.h>
-#include "xgetopt.h"
 /*-
  * Copyright (c) 2012 Dave Elusive <davehome@redthumb.info.tm>
  * All rights reserved.
@@ -26,7 +22,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <limits.h>
+#include <stdlib.h>
+#include <string.h>
 
+#include "xgetopt.h"
 #include "chkvers.h"
 #include "shp_api.h"
 #include "shp_parser.h"
@@ -52,8 +52,8 @@ chkvers_getopt(chkvers *chk, int *argc, char ***argv)
 			"Set (or override) the `xbps.conf' (which may have "
 			"automatically been detected)." },
 		{ "-d", "--distdir", "DIRECTORY",
-			"Set or override the XBPS_DISTDIR setting which may "
-			"have been set in your `xbps-src.conf' file." },
+			"Set (or override) the XBPS_DISTDIR setting (which may "
+			"have been set in your `xbps-src.conf' file)." },
 		{ "-s", "--show-missing", NULL,
 			"List any binary packages which are not built." },
 		{ "-x", "--xtrace", NULL,
@@ -61,8 +61,8 @@ chkvers_getopt(chkvers *chk, int *argc, char ***argv)
 			"same as `/bin/sh -x')." },
 		{ "-D", "--debug", NULL,
 			"Show internal bison parser stack debug information" },
-		{ NULL, NULL, "[FILES...]", "Extra packages to be processed "
-			"with the outdated ones (even if they are missing)." }
+		{ NULL, NULL, "[FILES...]", "Extra packages to process with "
+			"the outdated ones (only processed if missing)." }
 	};
 
 	distdirp = NULL;
