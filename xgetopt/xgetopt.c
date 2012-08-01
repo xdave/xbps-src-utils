@@ -75,8 +75,8 @@ xopt_usage(xgetopt *x, int optc, xopt *optv)
 	/* Four tabs */
 	tlen = 32;
 
-	/* Get the terminal width;  */
-	tw = ioctl(fileno(stdout), TIOCGWINSZ, &w);
+	/* Get the input terminal width;  */
+	tw = ioctl(fileno(stdin), TIOCGWINSZ, &w);
 
 	/* Check for and print any error as a warning, but don't stop */
 	if (tw == -1 && errno != 0) {
