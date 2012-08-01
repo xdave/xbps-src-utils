@@ -1,6 +1,9 @@
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
 
 #include "xgetopt.h"
 
@@ -9,7 +12,10 @@ xopt_find(int optc, xopt *optv, const char *req)
 {
 	int i;
 	xopt *opt;
-	if (!req) return NULL;
+
+	if (!req)
+		return NULL;
+
 	for (i = 0; i < optc; i++) {
 		opt = &optv[i];
 		if (opt->sopt)
@@ -25,38 +31,183 @@ xopt_find(int optc, xopt *optv, const char *req)
 void
 xopt_usage(xgetopt *x, int optc, xopt *optv)
 {
+	/* opt  : Pointer to the current option being processed,
+	 * w    : ioctl structure for the terminal size,
+	 * c    : Current character in description,
+	 * err  : Error number (for errno),
+	 * i    : Option index,
+	 * j    : General-purpose for loop index,
+	 * tlen : Total number of spaces until description starts,
+	 * dlen : Description text string read index,
+	 * line : Line position,
+	 * tw   : Terminal width. */
+
 	xopt *opt;
-	int i, j, tlen, slen;
-	char optline[BUFSIZ] = {'\0'};
+	struct winsize w;
+	char c;
+	int err, i, j, tlen, dlen, line, tw;
 
+	/* Four tabs */
 	tlen = 32;
-	printf("Usage: %s [OPTIONS] %s\n", x->progname,
-		(x->usage_text) ? x->usage_text : "");
-	printf(" %s\n", "Options:");
 
-	for (i = 0; i < optc; i++) {
-		opt = &optv[i];
-		strcat(optline, "  ");
-		if (opt->sopt) strcat(optline, opt->sopt);
-		if (opt->sopt && opt->lopt) strcat(optline, ",");
-		if (opt->lopt) strcat(optline, opt->lopt);
-		if (opt->sopt && !opt->lopt && opt->arg) {
-			strcat(optline, " ");
-			strcat(optline, opt->arg);
-		}
-		if (opt->lopt && opt->arg) {
-			strcat(optline, "=");
-			strcat(optline, opt->arg);
-		}
-		if (opt->desc) {
-			slen = (int)strlen(optline);
-			for (j = 0; j < tlen-slen; j++)
-				strcat(optline, " ");
-			strcat(optline, opt->desc);
-		}
-		printf("%s\n", optline);
-		optline[0] = '\0';
+	/* Get the terminal width;  */
+	tw = ioctl(fileno(stdout), TIOCGWINSZ, &w);
+
+	/* Check for and print any error as a warning, but don't stop */
+	if (tw == -1 && errno != 0) {
+		err = errno;
+		fprintf(stdout, "Warning: Can't get terminal width!: %s\n",
+			strerror(err));
 	}
+
+	/* If we couldn't get the size for some reason, don't wrap text. */
+	/* (If you have a terminal that is INT_MAX wide, file a bug report) */
+	tw = (tw == -1) ? INT_MAX : w.ws_col;
+
+	/* Avoid trying to print a null pointer */
+	if (!x->usage_text)
+		x->usage_text = "";
+
+	/* Start printing! */
+	printf("Usage: %s [OPTIONS] ", x->progname);
+
+	/* Print out the usage text, wrapping it if necessary */
+	for (j = 0, line = 0; j < (int)strlen(x->usage_text); j++) {
+		/* Start with a couple of spaces */
+		if (line == 0 && j != 0) {
+			printf("%s", "  ");
+			line += 2;
+		}
+		/* If we're at the end of the line ... */
+		if (line == tw - 1) {
+			/* Next char is NOT a space? */
+			if (x->usage_text[j] != ' ') {
+				/* Backspace until a space */
+				while (x->usage_text[--j] != ' ')
+					printf("%s", "\b \b");
+			}
+			/* Then `continue' to next line,
+			 * incrementing the description index
+			 * to skip the space */
+			putchar('\n');
+			line = 0;
+			/*j++;*/
+			continue;
+		}
+		/* Print out a character of the usage text */
+		if (line < tw - 1) {
+			putchar(x->usage_text[j]);
+			/* If we encounter a newline, act like
+			 * it, otherwise, just incrememnt */
+			if (x->usage_text[j] == '\n') {
+				line = 0;
+			} else {
+				line++;
+			}
+		}
+	}
+
+	printf("\n\n %s\n", "Options:");
+
+	/* For each option */
+	for (i = 0; i < optc; i++) {
+		/* Store it in a easy-to-type pointer */
+		opt = &optv[i];
+
+		/* Reset some things */
+		dlen = line = 0;
+
+		/* If this is just a normal argument, put a newline before it */
+		if (!opt->sopt && !opt->lopt && opt->arg && opt->desc)
+			putchar('\n');
+
+		/* A little padding (two spaces) at the start */
+		printf("%s", "  ");
+		line += 2;
+
+		/* Print out the short option */
+		if (opt->sopt) {
+			printf("%s", opt->sopt);
+			line += (int)strlen(opt->sopt);
+		}
+
+		/* If there's *also* a long option, print a comma */
+		if (opt->sopt && opt->lopt) {
+			putchar(',');
+			line++;
+		}
+
+		/* Print out the long option */
+		if (opt->lopt) {
+			printf("%s", opt->lopt);
+			line += (int)strlen(opt->lopt);
+		}
+
+		/* If there's a short option, but not a long option, and the
+		 * short option takes an argument, print a space */
+		if (opt->sopt && !opt->lopt && opt->arg) {
+			putchar(' ');
+			line++;
+		}
+
+		/* If the long option takes an argument, print an equal sign */
+		if (opt->lopt && opt->arg) {
+			putchar('=');
+			line++;
+		}
+
+		/* Print out required argument */
+		if (opt->arg) {
+			printf("%s", opt->arg);
+			line += (int)strlen(opt->arg);
+		}
+
+		/* Print out description */
+		if (opt->desc) {
+			/* For each character in the description */
+			while ((c = opt->desc[dlen]) != '\0') {
+				/* Indent the beginning of the description, or
+				 * at the beginning of a line up-to tlen */
+				if (dlen == 0 || line == 0) {
+					for (j = 0; j < tlen - line; j++)
+						putchar(' ');
+					line += j;
+				}
+				/* If we're at the end of the line ... */
+				if (line == tw - 1) {
+					/* Next char is NOT a space? */
+					if (c != ' ') {
+						/* Backspace until a space */
+						while (opt->desc[--dlen] != ' ')
+							printf("%s", "\b \b");
+					}
+					/* Then `continue' to next line,
+					 * incrementing the description index
+					 * to skip the space */
+					putchar('\n');
+					line = 0;
+					dlen++;
+					continue;
+				}
+				/* Print out a character of the description */
+				if (line < tw - 1) {
+					putchar(c);
+					/* If we encounter a newline, act like
+					 * it, otherwise, just incrememnt */
+					line = (c != '\n') ? line + 1: 0;
+				}
+				/* Increment the description read index */
+				dlen++;
+			}
+			/* If this is just a normal kind of argument and not an
+			 * option flag, put a newline after it */
+			if (!opt->sopt && !opt->lopt && opt->arg && opt->desc)
+				putchar('\n');
+		}
+		/* On to the next option! */
+		putchar('\n');
+	}
+	/* All done. */
 	exit(1);
 }
 
