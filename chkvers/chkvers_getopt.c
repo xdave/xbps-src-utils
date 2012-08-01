@@ -18,19 +18,34 @@ chkvers_getopt(chkvers *chk, int *argc, char ***argv)
 	char distdir[PATH_MAX] = {'\0'};
 
 	xopt optv[] = {
-		{ "-h", "--help", NULL, "Show this message" },
-		{ "-c", NULL, "FILENAME", "Override detected xbps-src.conf" },
-		{ "-C", NULL, "FILENAME", "Override detected xbps.conf" },
-		{ "-d", "--distdir", "DIRECTORY", "Override detected DISTDIR" },
-		{ "-s", "--show-missing", NULL, "Show missing binary pkgs" },
-		{ "-x", "--xtrace", NULL, "Show shell xtrace info" },
-		{ "-D", "--debug", NULL, "Show parser debug info" }
+		{ "-h", "--help", NULL,
+			"Show this helpful help-message for help." },
+		{ "-c", NULL, "FILENAME",
+			"Set (or override) the `xbps-src.conf' (which may have "
+			"automatically been detected)." },
+		{ "-C", NULL, "FILENAME",
+			"Set (or override) the `xbps.conf' (which may have "
+			"automatically been detected)." },
+		{ "-d", "--distdir", "DIRECTORY",
+			"Set or override the XBPS_DISTDIR setting which may "
+			"have been set in your `xbps-src.conf' file." },
+		{ "-s", "--show-missing", NULL,
+			"List any binary packages which are not built." },
+		{ "-x", "--xtrace", NULL,
+			"Show shell xtrace info (works almost exactly the "
+			"same as `/bin/sh -x')." },
+		{ "-D", "--debug", NULL,
+			"Show internal bison parser stack debug information" },
+		{ NULL, NULL, "[FILES...]", "Extra packages to be processed "
+			"with the outdated ones (even if they are missing)." }
 	};
 
 	distdirp = NULL;
 	optc = sizeof(optv)/sizeof(*optv);
 	memset(&x, 0, sizeof(xgetopt));
-	x.usage_text = "[FILES...]";
+	x.usage_text = "[FILES...]\n\nCopyright (c) 2012 The AUTHORS. "
+		"See the AUTHORS file.\n"
+		"See the COPYING file for license(s)/distribution details.";
 
 	chkvers_find_xbps_src_cfg(chk);
 
