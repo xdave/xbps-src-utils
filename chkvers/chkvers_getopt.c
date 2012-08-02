@@ -85,7 +85,7 @@ chkvers_getopt(chkvers *chk, int *argc, char ***argv)
 		}
 		if (x.opt == &optv[2]) { /* TODO */ }
 		if (x.opt == &optv[3])
-			distdirp = realpath(optarg, distdir);
+			distdirp = realpath(x.optarg, distdir);
 		if (x.opt == &optv[4])
 			chk->show_missing = 1;
 		if (x.opt == &optv[5])

@@ -98,7 +98,7 @@ xopt_usage(xgetopt *x, int optc, xopt *optv)
 
 	/* Print out the usage text, wrapping it if necessary */
 	for (j = 0, line = 0; j < (int)strlen(x->usage_text); j++) {
-		/* Start with a couple of spaces */
+		/* Start with a couple of spaces if this is a wrapped line */
 		if (line == 0 && j != 0) {
 			printf("%s", "  ");
 			line += 2;
@@ -111,12 +111,9 @@ xopt_usage(xgetopt *x, int optc, xopt *optv)
 				while (x->usage_text[--j] != ' ')
 					printf("%s", "\b \b");
 			}
-			/* Then `continue' to next line,
-			 * incrementing the description index
-			 * to skip the space */
+			/* Then `continue' to next line */
 			putchar('\n');
 			line = 0;
-			/*j++;*/
 			continue;
 		}
 		/* Print out a character of the usage text */
