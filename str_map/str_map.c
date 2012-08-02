@@ -69,8 +69,11 @@ str_map_add(str_map *map, const char *key, const char *value)
 	if (found) {
 		if (found->value && strcmp(found->value, value) == 0)
 			return found;
-		if (found->value)
+		if (found->value) {
+			found->value = memset(found->value, '\0',
+				(strlen(found->value) + 1) * sizeof(char));
 			xfree(found->value);
+		}
 		if ((found->value = xcalloc(vlen + 1, sizeof(char))) == NULL)
 			return NULL;
 		found->value = strncpy(found->value, value, vlen);
@@ -99,6 +102,10 @@ str_map_del(str_map *map, const char *key)
 {
 	str_map *found = str_map_find(map, key);
 	if (found) {
+		found->key = memset(found->key, '\0',
+			(strlen(found->key) + 1) * sizeof(char));
+		found->value = memset(found->value, '\0',
+			(strlen(found->value) + 1) * sizeof(char));
 		xfree(found->key);
 		xfree(found->value);
 		found->key = NULL;
