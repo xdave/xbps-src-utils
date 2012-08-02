@@ -64,7 +64,8 @@ error:
 		memset(chk->pkgname, 0, BUFSIZ);
 		strncpy(chk->pkgname, dname, strlen(dname) - strlen(bname));
 		if (chdir(srcpkgs) != 0) goto error;
-		if (lstat(chk->pkgname, &chk->st) != 0) goto error;
+		/* Instead of erroring out here, assume deleted pkg */
+		if (lstat(chk->pkgname, &chk->st) != 0) continue;
 		if (S_ISLNK(chk->st.st_mode) != 0) continue;
 		if (chdir(chk->pkgname) != 0) goto error;
 		shp_init(&s, "template", accept);
