@@ -38,7 +38,7 @@ chkvers_find_xbps_src_cfg(chkvers *chk)
 		"/usr/local/etc/xbps/xbps-src.conf", NULL
 	};
 
-	for (;(cfg = (*locations)++);) {
+	for (const char **lp = locations; (cfg = *lp++);) {
 		if ((fp = fopen(cfg, "r")) != NULL) {
 			fclose(fp);
 			strcpy(chk->xbps_src_cfg, cfg);
