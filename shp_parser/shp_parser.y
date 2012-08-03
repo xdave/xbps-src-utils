@@ -24,6 +24,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <assert.h>
 #include "shp_api.h"
 #include "shp_parser.h"
 #include "shp_lexer.h"
@@ -79,6 +80,7 @@ expr	: assign
 	;
 
 include : INCLUDE {{
+		memset($$, '\0', BUFSIZ);
 		shp inc;
 		_REF($$, $1);
 		shp_xtrace(s, "+ %s\n", $$);
@@ -90,18 +92,23 @@ include : INCLUDE {{
 	;
 
 assign	: id value {
+		str_map_del(s->env, $1);
+		assert(str_map_find(s->env, $1) == NULL);
 		str_map_add(s->env, $1, $2);
 		shp_xtrace(s, "+ %s=%s\n", $1, $2);
 		_VARCHK($1);
 	}
 	;
 
-id	: ID { strncpy($$, $1, strlen($1) + 1); }
+id	: ID {
+		memset($$, '\0', BUFSIZ);
+		strncpy($$, $1, strlen($1) + 1);
+	}
    	;
 
-value	: VALUE  { _REF($$, $1); }
-	| DQUOTE { _REF($$, $1); }
-	| SQUOTE { _REF($$, $1); }
+value	: VALUE  { memset($$, '\0', BUFSIZ); _REF($$, $1); }
+	| DQUOTE { memset($$, '\0', BUFSIZ); _REF($$, $1); }
+	| SQUOTE { memset($$, '\0', BUFSIZ); _REF($$, $1); }
 	;
 
 %%

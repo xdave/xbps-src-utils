@@ -77,6 +77,7 @@ error:
 		version = str_map_find(chk->env, "version")->value;
 		revision = str_map_find(chk->env, "revision")->value;
 		slen = strlen(version) + strlen(revision) + 2;
+		memset(chk->srcpkgver, '\0', BUFSIZ);
 		snprintf(chk->srcpkgver, slen, "%s_%s", version, revision);
 		chk->pkgd = find_pkg(&chk->xhp, chk->pkgname);
 		errno = 0;
