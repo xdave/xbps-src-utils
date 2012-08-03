@@ -44,6 +44,14 @@ shp_get_cmd(shp *s, char *dest, const char *src)
 	const char *ptr = src;
 	while ((c = *ptr++) != '\0') {
 		switch(c) {
+		case '$':
+			if (ref == 1) {
+				var[reflen++] = c;
+			} else {
+				buf[count++] = c;
+			}
+			if (prev == '\\') c = '?';
+			break;
 		case '(':
 			if (prev == '$') {
 				ref = 1;

@@ -40,7 +40,7 @@ shp_init(shp *s, const char *fname, const char **accept)
 
 	s->accept = accept;
 	s->fname = fname;
-	s->print_xtrace = 0;
+	s->print_xtrace = s->done = 0;
 	s->file = stdin;
 
 	if (strcmp(fname, "__STDIN__") != 0) {

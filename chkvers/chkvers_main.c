@@ -41,14 +41,17 @@ main(int argc, char **argv)
 	chk.env = str_map_create();
 
 	if (chkvers_getopt(&chk, &argc, &argv) != 0) {
+		str_map_destroy(chk.env);
 		chkvers_end(&chk);
 		return (EXIT_FAILURE);
 	}
 
-	chkvers_process_dir(&chk,
-		str_map_find(chk.env, "XBPS_SRCPKGDIR")->value, accept);
+	(void)accept; /* FIXME */
 
-	chkvers_process_files(&chk, argv, (size_t)argc, accept);
+	chkvers_process_dir(&chk,
+		str_map_find(chk.env, "XBPS_SRCPKGDIR")->value, /*accept*/NULL);
+
+	chkvers_process_files(&chk, argv, (size_t)argc, /*accept*/NULL);
 
 	str_map_destroy(chk.env);
 	chkvers_end(&chk);

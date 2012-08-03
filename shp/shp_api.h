@@ -44,7 +44,7 @@ struct _shp {
 	const char **accept;
 	const char *fname;
 	char *input;
-	int print_xtrace;
+	int print_xtrace, done;
 };
 
 #define YYSTYPE SHPSTYPE
@@ -70,10 +70,10 @@ struct _shp {
 		int i = 0;						\
 		for (; s->accept[i] != NULL; i++) {			\
 			if (strcmp(str, s->accept[i]) == 0)		\
-				done++;					\
+				s->done++;				\
 		}							\
-		if (done == i){						\
-			done = 0;					\
+		if (s->done == i) {					\
+			s->done = 0;					\
 			YYABORT;					\
 		}							\
 	}}								\
