@@ -51,6 +51,7 @@ error:
 	if (errno != 0) {
 		strerror_r(errno, errbuf, BUFSIZ);
 		printf("Error: (%s) (%s) %s\n", srcpkgs, file, errbuf);
+		str_map_destroy(processed);
 		exit(EXIT_FAILURE);
 	}
 
@@ -98,4 +99,5 @@ error:
 			chk->pkgname, chk->repover, chk->srcpkgver);
 		str_map_add(processed, chk->pkgname, "");
 	}
+	str_map_destroy(processed);
 }
