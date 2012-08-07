@@ -51,6 +51,8 @@ error:
 		strerror_r(errno, errbuf, BUFSIZ);
 		printf("Error: (%s) (%s) %s\n",
 			chk->dirpath, chk->pkgname, errbuf);
+		str_map_destroy(chk->env);
+		chkvers_end(chk);
 		exit(EXIT_FAILURE);
 	}
 

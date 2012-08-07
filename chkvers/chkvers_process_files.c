@@ -52,6 +52,8 @@ error:
 		strerror_r(errno, errbuf, BUFSIZ);
 		printf("Error: (%s) (%s) %s\n", srcpkgs, file, errbuf);
 		str_map_destroy(processed);
+		str_map_destroy(chk->env);
+		chkvers_end(chk);
 		exit(EXIT_FAILURE);
 	}
 
