@@ -3,7 +3,7 @@ all: $(LSRC) $(BSRC) $(TARGET)
 
 $(TARGET): $(OBJ)
 	@echo "[CCLD]	$@"
-	@$(CC) -o $@ $^ -lxbps -lprop
+	@$(CC) -o $@ $^ -lxbps -lprop $(LDFLAGS)
 
 %.o: %.c
 	@echo "[CC]	$@"
