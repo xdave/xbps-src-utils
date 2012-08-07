@@ -38,8 +38,8 @@ LDFLAGS="${LDFLAGS}"
 PKG_CFLAGS=
 PKG_LDFLAGS=
 
-test ${CFLAGS} || CFLAGS="-O2 -pipe -mtune=generic"
-test ${LDFLAGS} || LDFLAGS="-Wl,--as-needed"
+test -z "${CFLAGS}"  && CFLAGS="-O2 -pipe -mtune=generic"
+test -z "${LDFLAGS}" && LDFLAGS="-Wl,--as-needed"
 
 ###############################################################################
 # helper funcs.
@@ -125,10 +125,14 @@ PKG_LDFLAGS="${PKG_LDFLAGS} `pkg-config --libs ${PKGS}`"
 
 printf "Generating 'Makefile'... "
 sed -e "s|@PREFIX@|${PREFIX}|g" Makefile.in > Makefile
-for d in ${SUBDIRS}; do gen_make_var "CFLAGS" "-I${d}" ; done
+gen_make_var "CFLAGS" "${CFLAGS}"
 gen_make_var "CFLAGS" "-DETCDIR=\\\"\\\\\"${ETCDIR}\\\\\"\\\""
 gen_make_var "CFLAGS" "${PKG_CFLAGS}"
+for d in ${SUBDIRS}; do
+	gen_make_var "CFLAGS" "-I${d}"
+done
 gen_make_var "LDFLAGS" "${PKG_LDFLAGS}"
+gen_make_var "LDFLAGS" "${LDFLAGS}"
 gen_make_var "TARGET" "xbps-repo-checkvers"
 sed -e "s|@PREFIX@|${PREFIX}|g" rules.mk.in >> Makefile
 printf "done.\n"
