@@ -39,11 +39,13 @@ chkvers_process_files(chkvers *chk, char **files, size_t fc,
 		const char **accept)
 {
 	shp s;
+	str_map *processed;
 	const char *version, *revision;
 	char errbuf[BUFSIZ] = {'\0'};
 	char *file, *dname, *bname;
 	char *srcpkgs = str_map_find(chk->env, "XBPS_SRCPKGDIR")->value;
 	size_t i, slen;
+	processed = str_map_create();
 
 error:
 	if (errno != 0) {
@@ -61,8 +63,10 @@ error:
 		if (strncmp(file, "srcpkgs/", 8) != 0) continue;
 		dname = file + 8;
 		bname = strstr(dname, "/");
+		if (!bname) continue;
 		memset(chk->pkgname, 0, BUFSIZ);
 		strncpy(chk->pkgname, dname, strlen(dname) - strlen(bname));
+		if (str_map_find(processed, chk->pkgname)) continue;
 		if (chdir(srcpkgs) != 0) goto error;
 		/* Instead of erroring out here, assume deleted pkg */
 		if (lstat(chk->pkgname, &chk->st) != 0) continue;
@@ -85,10 +89,13 @@ error:
 			chk->repover = "(NULL)";
 		} else {
 			dict_get(chk->pkgd, "version", &chk->repover);
-			if (xbps_cmpver(chk->repover, chk->srcpkgver) > -1)
+			if (xbps_cmpver(chk->repover, chk->srcpkgver) > -1) {
+				str_map_add(processed, chk->pkgname, "");
 				continue;
+			}
 		}
 		printf("pkgname: %s repover: %s srcpkgver: %s [MANUAL]\n",
 			chk->pkgname, chk->repover, chk->srcpkgver);
+		str_map_add(processed, chk->pkgname, "");
 	}
 }
