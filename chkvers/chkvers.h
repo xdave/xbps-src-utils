@@ -31,7 +31,7 @@
 #include <stdbool.h>
 #include <xbps_api.h>
 
-#define find_pkg(c,n) xbps_rpool_find_pkg(c,n,false,true)
+#define find_pkg(c,n) xbps_rpool_get_pkg(c,n)
 #define dict_get(d,k,r) prop_dictionary_get_cstring_nocopy(d,k,r)
 
 typedef struct str_map_t str_map;
