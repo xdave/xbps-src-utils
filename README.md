@@ -13,8 +13,8 @@
 6. ...
 7. profit!?
 
-There also exists a `xbps-src-utils` binary XBPS package for Void GNU/Linux. To
-install it, type **`$ sudo xbps-bin -Sy install xbps-src-utils`** and have fun.
+There also exists a `xbps-src-utils` binary XBPS package for Void Linux. To
+install it, type **`$ sudo xbps-install -Sy xbps-src-utils`** and have fun.
 
 See COPYING file for license(s).
 
