@@ -52,8 +52,7 @@ WARN    := -Wall -Wextra -pedantic -Werror -pedantic-errors \
 	   -Woverlength-strings
 
 SSP     += --param ssp-buffer-size=2
-CFLAGS  += -ggdb
-CFLAGS  += -O2 -pipe -mtune=generic -std=c11 -pthread -fPIC
+CFLAGS  += -ggdb -std=c11 -pthread -fPIC
 CFLAGS  += -D__STRICT_ANSI__ -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
 CFLAGS  += -D_FILE_OFFSET_BITS=64 -D_REENTRANT
 CFLAGS  += -D_FORTIFY_SOURCE=2 -fstack-protector $(SSP)
