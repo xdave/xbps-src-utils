@@ -38,7 +38,7 @@ LDFLAGS="${LDFLAGS}"
 PKG_CFLAGS=
 PKG_LDFLAGS=
 
-test -z "${CFLAGS}"  && CFLAGS="-O2 -pipe -mtune=generic"
+test -z "${CFLAGS}"  && CFLAGS="-O2 -pipe"
 test -z "${LDFLAGS}" && LDFLAGS="-Wl,--as-needed"
 
 ###############################################################################
