@@ -33,8 +33,6 @@ PKGS="libxbps"
 
 PREFIX=/usr/local
 ETCDIR=${PREFIX}/etc
-CFLAGS="${CFLAGS}"
-LDFLAGS="${LDFLAGS}"
 PKG_CFLAGS=
 PKG_LDFLAGS=
 
