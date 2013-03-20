@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "chkvers.h"
 #include "shp_api.h"
@@ -39,7 +40,7 @@ void
 chkvers_process_dir(chkvers *chk, const char *directory, const char **accept)
 {
 	shp s;
-	const char *version, *revision;
+	const char *repopkgver, *version, *revision;
 	char errbuf[BUFSIZ] = {'\0'};
 	size_t slen;
 
@@ -83,7 +84,10 @@ error:
 				printf(PFMT, chk->pkgname, "?", chk->srcpkgver);
 			continue;
 		}
-		dict_get(chk->pkgd, "version", &chk->repover);
+		prop_dictionary_get_cstring_nocopy(chk->pkgd, "pkgver", &repopkgver);
+		chk->repover = xbps_pkg_version(repopkgver);
+		assert(repopkgver);
+		assert(chk->srcpkgver);
 		if (xbps_cmpver(chk->repover, chk->srcpkgver) > -1) continue;
 		printf(PFMT, chk->pkgname, chk->repover, chk->srcpkgver);
 	}
