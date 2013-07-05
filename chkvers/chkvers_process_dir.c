@@ -84,7 +84,7 @@ error:
 				printf(PFMT, chk->pkgname, "?", chk->srcpkgver);
 			continue;
 		}
-		prop_dictionary_get_cstring_nocopy(chk->pkgd, "pkgver", &repopkgver);
+		xbps_dictionary_get_cstring_nocopy(chk->pkgd, "pkgver", &repopkgver);
 		chk->repover = xbps_pkg_version(repopkgver);
 		assert(repopkgver);
 		assert(chk->srcpkgver);

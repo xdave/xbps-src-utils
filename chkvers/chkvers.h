@@ -29,10 +29,10 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <stdbool.h>
-#include <xbps_api.h>
+#include <xbps.h>
 
 #define find_pkg(c,n) xbps_rpool_get_pkg(c,n)
-#define dict_get(d,k,r) prop_dictionary_get_cstring_nocopy(d,k,r)
+#define dict_get(d,k,r) xbps_dictionary_get_cstring_nocopy(d,k,r)
 
 typedef struct str_map_t str_map;
 
@@ -43,7 +43,7 @@ struct _chkvers {
 	struct dirent entry, *result;
 	struct stat st;
 	struct xbps_handle xhp;
-	prop_dictionary_t pkgd;
+	xbps_dictionary_t pkgd;
 	str_map *env;
 	const char *dirpath, *repover;
 	char xbps_src_cfg[BUFSIZ],

@@ -92,7 +92,7 @@ error:
 		if (chk->pkgd == NULL) {
 			chk->repover = "(NULL)";
 		} else {
-			prop_dictionary_get_cstring_nocopy(chk->pkgd, "pkgver", &repopkgver);
+			xbps_dictionary_get_cstring_nocopy(chk->pkgd, "pkgver", &repopkgver);
 			chk->repover = xbps_pkg_version(repopkgver);
 			assert(chk->repover);
 			assert(chk->srcpkgver);
