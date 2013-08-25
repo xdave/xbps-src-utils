@@ -43,7 +43,7 @@ chkvers_process_files(chkvers *chk, char **files, size_t fc,
 	str_map *processed;
 	const char *repopkgver, *version, *revision;
 	char errbuf[BUFSIZ] = {'\0'};
-	char *file, *dname, *bname;
+	char *file = files[0], *dname, *bname;
 	char *srcpkgs = str_map_find(chk->env, "XBPS_SRCPKGDIR")->value;
 	size_t i, slen;
 	processed = str_map_create();
