@@ -51,6 +51,8 @@ WS		[\t\n ]+
 {INCLUDE}		{ __LVALUE(yytext, strlen(yytext));
 				return INCLUDE; }
 {ID}			{ BEGIN(ASSIGN);
+				if((strcmp("distfiles=", yytext) == 0))
+					return END;
 				__LVALUE(yytext, strlen(yytext) - 1);
 				return ID; }
 <ASSIGN>[\n]		{ BEGIN(INITIAL); }
