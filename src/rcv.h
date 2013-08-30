@@ -17,6 +17,17 @@
 #ifndef _RCV_H_
 #define _RCV_H_ 1
 
+#ifdef _RCV_DEBUG
+# define _dprintf(...)							\
+do {									\
+	fprintf(stderr, "DEBUG => %s:%d in %s(): ",			\
+		__FILE__, __LINE__, __PRETTY_FUNCTION__);		\
+	fprintf(stderr, __VA_ARGS__);					\
+} while (0)
+#else
+#define _dprintf(...)
+#endif
+
 #include <stddef.h>
 #include <stdbool.h>
 #include <xbps.h>
