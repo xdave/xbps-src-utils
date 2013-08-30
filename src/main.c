@@ -29,11 +29,11 @@ main(int argc, char **argv)
 	rcv_t rcv;
 	const char *prog = argv[0], *sopts = "hc:C:d:s", *tmpl;
 	const struct option lopts[] = {
-		{ "help", no_argument, NULL, 0 },
-		{ "xbps-src-conf", required_argument, NULL, 0 },
-		{ "xbps-conf", required_argument, NULL, 0 },
-		{ "distdir", required_argument, NULL, 0 },
-		{ "show-missing", no_argument, NULL, 0 },
+		{ "help", no_argument, NULL, 'h' },
+		{ "xbps-src-conf", required_argument, NULL, 'c' },
+		{ "xbps-conf", required_argument, NULL, 'C' },
+		{ "distdir", required_argument, NULL, 'd' },
+		{ "show-missing", no_argument, NULL, 's' },
 		{ NULL, 0, NULL, 0 }
 	};
 
@@ -55,7 +55,9 @@ main(int argc, char **argv)
 			rcv.xbps_conf = strdup(optarg);
 			break;
 		case 'd':
-			rcv.distdir = strdup(optarg);
+			free(rcv.distdir); rcv.distdir = NULL;
+			free(rcv.pkgdir); rcv.pkgdir = NULL;
+			rcv_set_distdir(&rcv, optarg);
 			break;
 		case 's':
 			rcv.show_missing = true;
@@ -71,7 +73,7 @@ main(int argc, char **argv)
 	rcv_init(&rcv, prog);
 	rcv_process_dir(&rcv, rcv.pkgdir, rcv_process_file);
 	if (argc > 0) {
-		for (i = 0; i < argc; i++) {
+		for(i = 0; i < argc; i++) {
 			tmpl = argv[i] + (strlen(argv[i]) - strlen("template"));
 			if ((strcmp("template", tmpl)) == 0) {
 				rcv_process_file(&rcv, argv[i],

@@ -65,12 +65,14 @@ rcv_find_conf(rcv_t *rcv)
 	c.xsrc_conf = c.xbps_conf = c.distdir = c.pkgdir = NULL;
 	rcv_init(&c, rcv->prog);
 	rcv_process_file(&c, rcv->xsrc_conf, rcv_parse_config);
-	rcv->distdir = strdup(c.distdir);
+
+	rcv_set_distdir(rcv, c.distdir);
+
+	/*rcv->distdir = strdup(c.distdir);
 	rcv->pkgdir = strdup(c.distdir);
 	rcv->pkgdir = realloc(rcv->pkgdir,
 			sizeof(char)*(strlen(c.distdir)+strlen("/srcpkgs")+1));
-	rcv->pkgdir = strcat(rcv->pkgdir, "/srcpkgs");
-	rcv_end(&c);
+	rcv->pkgdir = strcat(rcv->pkgdir, "/srcpkgs");*/
 
-	/* TODO: parse xbps.conf */
+	rcv_end(&c);
 }

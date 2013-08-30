@@ -54,6 +54,7 @@ typedef int (*rcv_proc_func)(rcv_t *, const char *, rcv_check_func);
 
 void		rcv_find_conf(rcv_t *rcv);
 int		rcv_show_usage(const char *prog);
+void		rcv_set_distdir(rcv_t *rcv, const char *distdir);
 
 void		rcv_init(rcv_t *rcv, const char *prog);
 bool		rcv_load_file(rcv_t *rcv, const char *fname);
