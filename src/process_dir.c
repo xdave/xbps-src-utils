@@ -58,6 +58,7 @@ error:
 	}
 
 	if ((closedir(dir)) == -1) goto error;
+	if ((chdir("..")) == -1) goto error;
 
 	return ret;
 }
