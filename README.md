@@ -18,5 +18,5 @@ install it, type **`$ sudo xbps-install -Sy xbps-src-utils`** and have fun.
 
 See COPYING file for license(s).
 
-Copyright (c) 2012 Dave Elusive <davehome@redthumb.info.tm>
+Copyright (c) 2012-2013 Dave Elusive <davehome@redthumb.info.tm>
 All rights reserved.

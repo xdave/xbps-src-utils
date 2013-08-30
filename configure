@@ -1,137 +1,76 @@
 #!/bin/bash
-#/*-
-# * Copyright (c) 2012 Dave Elusive <davehome@redthumb.info.tm>
-# * All rights reserved.
-# *
-# * Redistribution and use in source and binary forms, with or without
-# * modification, are permitted provided that the following conditions
-# * are met:
-# * 1. Redistributions of source code must retain the above copyright
-# *    notice, this list of conditions and the following disclaimer.
-# * 2. Redistributions in binary form must reproduce the above copyright
-# *    notice, this list of conditions and the following disclaimer in the
-# *    documentation and/or other materials provided with the distribution.
-# *
-# * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-# * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-# * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-# * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-# * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-# * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-# * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-# * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-# * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-# */
 
-###############################################################################
-# Initialization.
-###############################################################################
+# Copyright (c) 2012-2013 Dave Elusive <davehome@redthumb.info.tm>
+# All rights reserved
+#
+# You may redistribute this file and/or modify it under the terms of the GNU
+# General Public License version 2 as published by the Free Software
+# Foundation. For the terms of this license, see 
+# <http://www.gnu.org/licenses/>.
+#
+# You are free to use this file under the terms of the GNU General Public
+# License, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
 
-SUBDIRS="`/bin/ls -F | grep / | awk -F/ '{print $1}' | xargs`"
+PREFIX="/usr/local"
+ETCDIR="/etc"
+TGT="xbps-repo-checkvers"
+PROGRAMS="cp rm make sed pkg-config cc"
 PKGS="libxbps"
 
-PREFIX=/usr/local
-ETCDIR=${PREFIX}/etc
-PKG_CFLAGS=
-PKG_LDFLAGS=
-
-test -z "${CFLAGS}"  && CFLAGS="-O2 -pipe"
-test -z "${LDFLAGS}" && LDFLAGS="-Wl,--as-needed"
-
-###############################################################################
-# helper funcs.
-###############################################################################
-
-get_option() {
-	echo "${1}" | sed -e "s|--${2}=||"
-}
-
-check_program() {
-	local p=${1}
-	printf "Checking for '${p}' program... "
-	${p} --version 2>/dev/null
-	[ $? -eq 0 ] || {
-		printf "nope.\nERROR: Cannot find the '${p}' program on your "
-		printf "system!\nAborting.\n"
-		exit 1
-	}
-}
-
-check_pkg() {
-	local pkg=${1}
-	printf "Checking for '%s' package... " ${pkg}
-	pkg-config --modversion ${pkg} 2>/dev/null
-	if [ ! $? -eq 0 ]; then
-		printf "nope.\nERROR: Cannot find the '${pkg}' package on your "
-		printf "system!\nAborting.\n"
-		exit 1
-	fi
-}
-
-gen_make_var() {
-	local var=${1}
-	local val=${2}
-	local name=${3}
-	test ${name} && dir="${name}/" || dir=""
-	printf "${var} += ${val}\n" >> ${dir}Makefile
-}
-
-###############################################################################
-# main()
-###############################################################################
-
-for arg in $*; do
-	case ${arg} in
-	--help|-h)
-		printf "Usage $0 [options]\n"
-		printf "  --help		(this message)\n"
-		printf "  --prefix=PREFIX	[default=/usr/local]\n"
-		printf "  --etcdir=ETCDIR	[default=PREFIX/etc]\n"
-		exit 0
+for opt in "$@"; do
+	case ${opt} in
+		--prefix=*)
+			PREFIX=$(echo ${opt} | sed 's/^--prefix=//')
 		;;
-	--prefix=*)
-		PREFIX=`get_option ${arg} prefix`
-		test ${PREFIX} || {
-			printf "Can't have an empty prefix!\n"
-			exit 1
-		}
+		--etcdir=*)
+			ETCDIR=$(echo ${opt} | sed 's/^--etcdir=//')
 		;;
-	--etcdir=*)
-		ETCDIR=`get_option ${arg} etcdir`
-		test ${ETCDIR} || {
-			printf "Can't have an empty etcdir!\n"
-			exit 1
-		}
+		*)
+			_arg=$(echo ${opt} | sed -e "s|=.*$||")
+			printf "Unrecognized option: %s\n" ${_arg}
+			exit 1;
 		;;
-	*)
-		_foobar=`echo ${arg} | sed -e "s|=.*||"`
-		printf "Unrecognized option: '%s'.\n" ${_foobar}
-		exit 1
+
 	esac
 done
 
-check_program install | grep -m1 -E "\."
-check_program flex
-check_program bison | grep -m1 -E "\."
-check_program pkg-config
+check_program() {
+	echo -n "Checking for ${1} ... "
+	${1} --help &>/dev/null
+	if [ 0 -ne ${?} ]; then
+		echo "not found!"
+		exit 1;
+	fi
+	echo "found."
+}
 
-for pkg in ${PKGS}; do check_pkg ${pkg} ; done
+check_pkg() {
+	echo -n "Checking for ${1} ... "
+	pkg-config --exists ${1}
+	if [ 0 -ne ${?} ]; then
+		echo "not found!"
+		exit 1;
+	fi
+	echo "found."
+}
 
-PKG_CFLAGS="${PKG_CFLAGS} `pkg-config --cflags ${PKGS}`"
-PKG_LDFLAGS="${PKG_LDFLAGS} `pkg-config --libs ${PKGS}`"
+gen_makefile() {
+	for p in ${PROGRAMS}; do
+		check_program ${p}
+	done
+	for p in ${PKGS}; do
+		check_pkg ${p}
+	done
+	echo -n "Generating Makefile ... "
+	sed 					\
+		-e "s|%%PREFIX%%|${PREFIX}|g"	\
+		-e "s|%%ETCDIR%%|${ETCDIR}|g"	\
+		-e "s|%%TGT%%|${TGT}|g"		\
+		-e "s|%%PKGS%%|${PKGS}|g"	\
+		Makefile.in > Makefile
+	echo "done."
+}
 
-printf "Generating 'Makefile'... "
-sed -e "s|@PREFIX@|${PREFIX}|g" Makefile.in > Makefile
-gen_make_var "CFLAGS" "${CFLAGS}"
-gen_make_var "CFLAGS" "-DETCDIR=\\\"\\\\\"${ETCDIR}\\\\\"\\\""
-gen_make_var "CFLAGS" "${PKG_CFLAGS}"
-for d in ${SUBDIRS}; do
-	gen_make_var "CFLAGS" "-I${d}"
-done
-gen_make_var "LDFLAGS" "${PKG_LDFLAGS}"
-gen_make_var "LDFLAGS" "${LDFLAGS}"
-gen_make_var "TARGET" "xbps-repo-checkvers"
-sed -e "s|@PREFIX@|${PREFIX}|g" rules.mk.in >> Makefile
-printf "done.\n"
-
+gen_makefile

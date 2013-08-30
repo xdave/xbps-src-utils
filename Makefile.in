@@ -1,59 +1,72 @@
-PREFIX += $(DESTDIR)@PREFIX@
+# Copyright (c) 2012-2013 Dave Elusive <davehome@redthumb.info.tm>
+# All rights reserved
+#
+# You may redistribute this file and/or modify it under the terms of the GNU
+# General Public License version 2 as published by the Free Software
+# Foundation. For the terms of this license, see 
+# <http://www.gnu.org/licenses/>.
+#
+# You are free to use this file under the terms of the GNU General Public
+# License, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
 
-SRC     += $(shell find -type f -name '*.c')
-LX      += $(shell find -type f -name '*.l')
-BSN     += $(shell find -type f -name '*.y')
-LSRC    += $(LX:.l=.c)
-BSRC    += $(BSN:.y=.c)
-LHD     += $(LX:.l=.h)
-BHD     += $(BSN:.y=.h)
-OBJ     += $(LSRC:.c=.o)
-OBJ     += $(BSRC:.c=.o)
-OBJ     += $(SRC:.c=.o)
+PREFIX	?= %%PREFIX%%
+DESTDIR	?=
+BINDIR	:= $(DESTDIR)$(PREFIX)
+ETCDIR	:= $(DESTDIR)%%ETCDIR%%
 
-GWARN   := -Wunsafe-loop-optimizations \
-	   -Wdouble-promotion \
-	   -Wsync-nand \
-	   -Wsuggest-attribute=const \
-	   -Wsuggest-attribute=pure \
-	   -Wsuggest-attribute=noreturn \
-	   -Wtrampolines \
-	   -Wjump-misses-init \
-	   -Wlogical-op \
-	   -Wvector-operation-performance \
-	   -Wunsuffixed-float-constants
+TGT	:= %%TGT%%
+SRC	+= $(wildcard src/*.c)
+OBJ	+= $(patsubst src/%.c,tmp/%.o,$(SRC))
+PKGS	+= %%PKGS%%
+PKGC	+= $(shell pkg-config --cflags $(PKGS))
+PKGL	+= $(shell pkg-config --libs $(PKGS))
 
-WARN    := -Wall -Wextra -pedantic -Werror -pedantic-errors \
-	   -Wstack-protector \
-	   -Wformat=2 -Wformat-y2k -Wformat-nonliteral -Wformat-security \
-	   -Wmissing-format-attribute \
-	   -Winit-self \
-	   -Wmissing-include-dirs \
-	   -Wmissing-prototypes \
-	   -Wmissing-declarations \
-	   -Wswitch-default -Wswitch-enum \
-	   -Wfloat-equal \
-	   -Wdeclaration-after-statement \
-	   -Wundef \
-	   -Wshadow \
-	   -Wbad-function-cast \
-	   -Wcast-align \
-	   -Wconversion \
-	   -Wwrite-strings \
-	   -Waggregate-return \
-	   -Wstrict-prototypes \
-	   -Wold-style-definition \
-	   -Wpacked \
-	   -Wredundant-decls \
-	   -Wnested-externs \
-	   -Winline \
-	   -Wdisabled-optimization \
-	   -Wstack-protector \
-	   -Woverlength-strings
+CFLAGS	+= -g -ggdb3 -O2 -pipe -fPIC
+CFLAGS  += -D_FORTIFY_SOURCE=2 -fstack-protector --param ssp-buffer-size=2
+CFLAGS	+= -std=c11 -D_POSIX_C_SOURCE=201300L -D_XOPEN_SOURCE=900
+CFLAGS	+= -D_FILE_OFFSET_BITS=64
+CFLAGS	+= -DETCDIR="\"$(ETCDIR)\""
+CFLAGS	+= -Wall -Wextra -Wformat=2 -Wformat-security -pedantic
+CFLAGS	+= -Wno-missing-field-initializers -Wno-sign-conversion \
+		-Wno-unused-result
 
-SSP     += --param ssp-buffer-size=2
-CFLAGS  += -ggdb -O2 -std=c11 -pthread -fPIC
-CFLAGS  += -D__STRICT_ANSI__ -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
-CFLAGS  += -D_FILE_OFFSET_BITS=64 -D_REENTRANT
-CFLAGS  += -D_FORTIFY_SOURCE=2 -fstack-protector $(SSP)
+CFLAGS	+= -Wunsafe-loop-optimizations -Wdouble-promotion -Wsync-nand	      \
+		-Wsuggest-attribute=const -Wsuggest-attribute=pure	      \
+		-Wsuggest-attribute=noreturn -Wtrampolines -Wjump-misses-init \
+		-Wlogical-op -Wvector-operation-performance 		      \
+		-Wunsuffixed-float-constants -Winit-self 		      \
+		-Wmissing-include-dirs -Wmissing-prototypes		      \
+		-Wmissing-declarations -Wswitch-default -Wswitch-enum	      \
+		-Wfloat-equal -Wdeclaration-after-statement -Wundef -Wshadow  \
+		-Wbad-function-cast -Wcast-align -Wwrite-strings	      \
+		-Wstrict-prototypes -Wold-style-definition -Wpacked 	      \
+		-Wredundant-decls -Wnested-externs -Winline		      \
+		-Wdisabled-optimization -Wstack-protector -Woverlength-strings
 
+CFLAGS	+= $(PKGC)
+LDFLAGS	+= $(PKGL)
+
+$(TGT): $(OBJ)
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+tmp/%.o: src/%.c
+	@mkdir -p ${@D}
+	$(CC) -o $@ -c $< $(CFLAGS)
+
+install: $(TGT)
+	@mkdir -p $(BINDIR)
+	@cp -v $^ $(BINDIR)
+
+uninstall: $(TGT)
+	@rm -fv $(BINDIR)/$^
+
+clean:
+	@rm -rfv tmp $(TGT)
+
+distclean: clean
+	@rm -fv Makefile
+
+.PHONY: all install uninstall clean distclean
+.PRECIOUS: $(SRC)
