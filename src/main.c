@@ -22,11 +22,6 @@
 
 #include "rcv.h"
 
-/* TODO:
- * - use the xbps-src and xbps config files
- * - duplicate cmdline args of prev xbps-repo-checkvers
- */
-
 int
 main(int argc, char **argv)
 {
@@ -42,7 +37,7 @@ main(int argc, char **argv)
 		{ NULL, 0, NULL, 0 }
 	};
 
-	rcv.xsrc_conf = rcv.xbps_conf = rcv.distdir = NULL;
+	rcv.xsrc_conf = rcv.xbps_conf = rcv.distdir = rcv.pkgdir = NULL;
 	rcv.show_missing = false;
 
 	rcv_find_conf(&rcv);

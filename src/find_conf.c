@@ -38,28 +38,32 @@ rcv_find_conf(rcv_t *rcv)
 		"/usr/local/etc/xbps/xbps.conf", NULL
 	};
 
-	for (lp = xsrc_locs; (conf = *lp++) && !rcv->xsrc_conf;) {
-		if ((fp = fopen(conf, "r")) != NULL) {
-			fclose(fp);
-			rcv->xsrc_conf = calloc(strlen(conf) + 1, sizeof(char));
-			rcv->xsrc_conf = strcpy(rcv->xsrc_conf, conf);
-			rcv->xsrc_conf[strlen(conf)] = '\0';
-			break;
+	if (!rcv->xsrc_conf) {
+		for (lp = xsrc_locs; (conf = *lp++);) {
+			if ((fp = fopen(conf, "r")) != NULL) {
+				fclose(fp);
+				rcv->xsrc_conf = calloc(strlen(conf) + 1,
+					sizeof(char));
+				rcv->xsrc_conf = strcpy(rcv->xsrc_conf, conf);
+				rcv->xsrc_conf[strlen(conf)] = '\0';
+				break;
+			}
 		}
 	}
-
-	for (lp = xbps_locs; (conf = *lp++) && !rcv->xbps_conf;) {
-		if ((fp = fopen(conf, "r")) != NULL) {
-			fclose(fp);
-			rcv->xbps_conf = calloc(strlen(conf) + 1, sizeof(char));
-			rcv->xbps_conf = strcpy(rcv->xbps_conf, conf);
-			rcv->xbps_conf[strlen(conf)] = '\0';
-			break;
+	if (!rcv->xbps_conf) {
+		for (lp = xbps_locs; (conf = *lp++);) {
+			if ((fp = fopen(conf, "r")) != NULL) {
+				fclose(fp);
+				rcv->xbps_conf = calloc(strlen(conf) + 1,
+					sizeof(char));
+				rcv->xbps_conf = strcpy(rcv->xbps_conf, conf);
+				rcv->xbps_conf[strlen(conf)] = '\0';
+				break;
+			}
 		}
 	}
-
-	rcv_init(&c, rcv->prog);
 	c.xsrc_conf = c.xbps_conf = c.distdir = c.pkgdir = NULL;
+	rcv_init(&c, rcv->prog);
 	rcv_process_file(&c, rcv->xsrc_conf, rcv_parse_config);
 	rcv->distdir = strdup(c.distdir);
 	rcv->pkgdir = strdup(c.distdir);

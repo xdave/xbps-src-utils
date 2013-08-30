@@ -25,6 +25,7 @@ rcv_init(rcv_t *rcv, const char *prog)
 	rcv->have_vars = 0;
 	rcv->ptr = rcv->input = NULL;
 	memset(&rcv->xhp, 0, sizeof(struct xbps_handle));
+	if (rcv->xbps_conf != NULL)
+		rcv->xhp.conffile = rcv->xbps_conf;
 	xbps_init(&rcv->xhp);
-	rcv->xhp.conffile = rcv->xbps_conf;
 }
