@@ -14,7 +14,10 @@
  *
  */
 
+#include <errno.h>
 #include <dirent.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 
@@ -27,26 +30,34 @@ rcv_process_dir(rcv_t *rcv, const char *path, rcv_proc_func process)
 	struct dirent entry, *result;
 	struct stat st;
 	char filename[BUFSIZ];
-	int ret = 0;
+	int i, ret = 0;
 
 	dir = opendir(path);
+error:
+	if (errno > 0) {
+		fprintf(stderr, "Error: while processing dir '%s': %s\n", path,
+			strerror(errno));
+		exit(1);
+	}
 
-	(void)chdir(path);
-	while(readdir_r(dir, &entry, &result) == 0) {
+	if ((chdir(path)) == -1) goto error;
+	while(1) {
+		i = readdir_r(dir, &entry, &result);
+		if (i > 0) goto error;
 		if (result == NULL) break;
 		if (strcmp(result->d_name, ".") == 0) continue;
 		if (strcmp(result->d_name, "..") == 0) continue;
-		lstat(result->d_name, &st);
+		if ((lstat(result->d_name, &st)) != 0) goto error;
 		if (S_ISLNK(st.st_mode) != 0) continue;
-		(void)chdir("..");
+		if ((chdir("..")) == -1) goto error;
 		strcpy(filename, "srcpkgs/");
 		strcat(filename, result->d_name);
 		strcat(filename, "/template");
 		ret = process(rcv, filename, rcv_check_version);
-		(void)chdir(path);
+		if ((chdir(path)) == -1) goto error;
 	}
 
-	closedir(dir);
+	if ((closedir(dir)) == -1) goto error;
 
 	return ret;
 }
