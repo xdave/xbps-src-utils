@@ -40,11 +40,7 @@ rcv_get_pkgver(rcv_t *rcv)
 		vlen = caps[1].len;
 		if (v[0] == '"') { v++; vlen--; }
 		if (v[vlen-1] == '"') { vlen--; }
-		if ((strncmp("distfiles",  k, klen) == 0) ||
-		    (strncmp("configure_args",  k, klen) == 0) ||
-		    (strncmp("checksum",  k, klen) == 0)) {
-		    goto end;
-		}
+		if (v[0] == '\n') { goto end; } /* Skips multiline string vars*/
 		_item = map_add_n(rcv->env, k, klen, v, vlen);
 		item = &rcv->env->items[_item.i];
 		if (strchr(v, '$')) {
