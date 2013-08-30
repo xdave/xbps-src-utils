@@ -14,14 +14,17 @@
  *
  */
 
+#include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "rcv.h"
 
 char *
 rcv_cmd(rcv_t *rcv, const char *s, size_t len)
 {
-	int c;
+	int c, rv = 0;
 	FILE *stream;
 	size_t i = 0, j = 0, k = 0, count = len*3;
 	char *cmd = calloc(count, sizeof(char));
@@ -35,11 +38,26 @@ rcv_cmd(rcv_t *rcv, const char *s, size_t len)
 			while (s[i] != ')') { cmd[j++] = s[i++]; }
 			if (s[i] == ')') { i++; }
 			cmd[j++] = '\0';
-			stream = popen(cmd, "r");
+			if ((stream = popen(cmd, "r")) == NULL)
+				goto error;
 			while ((c = fgetc(stream)) != EOF && c != '\n') {
 				buf[k++] = (char)c;
 			}
-			pclose(stream);
+			rv = pclose(stream);
+error:
+			if (rv > 0 || errno > 0) {
+				fprintf(stderr,
+					"Shell cmd failed: '%s' for "
+					"template '%s'",
+					cmd, rcv->fname);
+				if (errno > 0) {
+					fprintf(stderr, ": %s\n",
+						strerror(errno));
+				}
+				putchar('\n');
+				exit(1);
+			}
+
 		} else {
 			if (s[i] != '\n')
 				buf[k++] = s[i++];
