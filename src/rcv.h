@@ -58,6 +58,7 @@ typedef struct _rcv_t {
 	struct xbps_handle xhp;
 	xbps_dictionary_t pkgd;
 	bool show_missing;
+	bool manual;
 } rcv_t;
 
 typedef int (*rcv_check_func)(rcv_t *);

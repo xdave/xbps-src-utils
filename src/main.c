@@ -71,7 +71,9 @@ main(int argc, char **argv)
 	argv += optind;
 
 	rcv_init(&rcv, prog);
+	rcv.manual = false;
 	rcv_process_dir(&rcv, rcv.pkgdir, rcv_process_file);
+	rcv.manual = true;
 	if (argc > 0) {
 		for(i = 0; i < argc; i++) {
 			tmpl = argv[i] + (strlen(argv[i]) - strlen("template"));

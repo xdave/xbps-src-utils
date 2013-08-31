@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "rcv.h"
 
 int
@@ -45,14 +46,17 @@ rcv_check_version(rcv_t *rcv)
 	srcver = strncat(srcver, "_", 1);
 	srcver = strncat(srcver, revision.v.s, revision.v.len);
 	xbps_dictionary_get_cstring_nocopy(rcv->pkgd, "pkgver", &repover);
-	if (repover == NULL && rcv->show_missing == true) {
+	if (repover == NULL && (rcv->show_missing==true||rcv->manual==true)) {
 		printf("pkgname: %.*s repover: ? srcpkgver: %s\n",
-				pkgname.v.len, pkgname.v.s, srcver + pkgname.v.len  + 1);
+			pkgname.v.len, pkgname.v.s, srcver+pkgname.v.len+1);
 	}
 	if (repover != NULL && rcv->show_missing == false) {
-		if (xbps_cmpver(repover + pkgname.v.len + 1, srcver + pkgname.v.len  + 1) < 0) {
+		if (xbps_cmpver(repover+pkgname.v.len+1,
+		    srcver+pkgname.v.len+1) < 0) {
 			printf("pkgname: %.*s repover: %s srcpkgver: %s\n",
-				pkgname.v.len, pkgname.v.s, repover + pkgname.v.len  + 1, srcver + pkgname.v.len  + 1);
+				pkgname.v.len, pkgname.v.s,
+				repover+pkgname.v.len+1,
+				srcver+pkgname.v.len+1);
 		}
 	}
 	return 0;
