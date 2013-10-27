@@ -27,8 +27,11 @@ rcv_process_file(rcv_t *rcv, const char *fname, rcv_check_func check)
 	rcv->env = map_create();
 	rcv->have_vars = 0;
 
-	if (!rcv_load_file(rcv, fname))
-		exit(EXIT_FAILURE);
+	if (!rcv_load_file(rcv, fname)) {
+		map_destroy(rcv->env);
+		rcv->env = NULL;
+		return EXIT_FAILURE;
+	}
 
 	map_add(rcv->env, "HOME", getenv("HOME"));
 
