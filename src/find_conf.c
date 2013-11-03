@@ -68,11 +68,5 @@ rcv_find_conf(rcv_t *rcv)
 
 	rcv_set_distdir(rcv, c.distdir);
 
-	/*rcv->distdir = strdup(c.distdir);
-	rcv->pkgdir = strdup(c.distdir);
-	rcv->pkgdir = realloc(rcv->pkgdir,
-			sizeof(char)*(strlen(c.distdir)+strlen("/srcpkgs")+1));
-	rcv->pkgdir = strcat(rcv->pkgdir, "/srcpkgs");*/
-
 	rcv_end(&c);
 }
