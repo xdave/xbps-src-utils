@@ -28,8 +28,10 @@ rcv_load_file(rcv_t *rcv, const char *fname)
 	rcv->fname = fname;
 
 	if ((file = fopen(rcv->fname, "r")) == NULL) {
-		/*fprintf(stderr, "FileError: can't open '%s': %s\n", rcv->fname,
-			strerror(errno));*/
+		if (!rcv->manual) {
+			fprintf(stderr, "FileError: can't open '%s': %s\n",
+				rcv->fname, strerror(errno));
+		}
 		return false;
 	}
 
