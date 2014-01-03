@@ -40,7 +40,6 @@ main(int argc, char **argv)
 	rcv.xsrc_conf = rcv.xbps_conf = rcv.distdir = rcv.pkgdir = NULL;
 	rcv.show_missing = false;
 
-	rcv_find_conf(&rcv);
 
 	while ((c = getopt_long(argc, argv, sopts, lopts, NULL)) != -1) {
 		switch (c) {
@@ -70,6 +69,7 @@ main(int argc, char **argv)
 	argc -= optind;
 	argv += optind;
 
+	rcv_find_conf(&rcv);
 	rcv_init(&rcv, prog);
 	rcv.manual = false;
 	rcv_process_dir(&rcv, rcv.pkgdir, rcv_process_file);
