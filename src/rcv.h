@@ -64,26 +64,4 @@ typedef struct _rcv_t {
 typedef int (*rcv_check_func)(rcv_t *);
 typedef int (*rcv_proc_func)(rcv_t *, const char *, rcv_check_func);
 
-void		rcv_find_conf(rcv_t *rcv);
-int		rcv_show_usage(const char *prog);
-void		rcv_set_distdir(rcv_t *rcv, const char *distdir);
-
-void		rcv_init(rcv_t *rcv, const char *prog);
-bool		rcv_load_file(rcv_t *rcv, const char *fname);
-int		rcv_process_file(rcv_t *rcv, const char *fname, rcv_check_func);
-int		rcv_process_dir(rcv_t *rcv, const char *path, rcv_proc_func);
-int		rcv_check_version(rcv_t *rcv);
-int		rcv_parse_config(rcv_t *rcv);
-int		rcv_get_pkgver(rcv_t *rcv);
-char *		rcv_refs(rcv_t *rcv, const char *s, size_t len);
-char *		rcv_cmd(rcv_t *rcv, const char *s, size_t len);
-void		rcv_end(rcv_t *rcv);
-
-map_t *		map_create(void);
-map_item_t	map_new_item(void) __attribute__ ((const));
-map_item_t	map_add_n(map_t *map, const char *k, size_t kn, const char *v, size_t vn);
-map_item_t	map_add(map_t *map, const char *k, const char *v);
-map_item_t	map_find(map_t *map, const char *k) __attribute__ ((pure));
-void		map_destroy(map_t *map);
-
 #endif /* _RCV_H_ */
