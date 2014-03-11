@@ -439,12 +439,9 @@ rcv_find_conf(rcv_t *rcv)
 			}
 		}
 	}
-	c.xsrc_conf = c.xbps_conf = c.distdir = c.pkgdir = NULL;
-	rcv_init(&c, rcv->prog);
+	memset(&c, 0, sizeof(rcv_t));
 	rcv_process_file(&c, rcv->xsrc_conf, rcv_parse_config);
-
 	rcv_set_distdir(rcv, c.distdir);
-
 	rcv_end(&c);
 }
 
@@ -496,35 +493,56 @@ rcv_process_dir(rcv_t *rcv, const char *path, rcv_proc_func process)
 	struct dirent entry, *result;
 	struct stat st;
 	char filename[BUFSIZ];
-	int i, ret = 0;
+	int i, ret = 0, errors = 0;
 
 	dir = opendir(path);
 error:
-	if (errno > 0) {
+	if (errors > 0) {
 		fprintf(stderr, "Error: while processing dir '%s': %s\n", path,
-			strerror(errno));
+			strerror(errors));
 		exit(1);
 	}
 
-	if ((chdir(path)) == -1) goto error;
+	if ((chdir(path)) == -1) {
+		errors = errno;
+		goto error;
+	}
 	while(1) {
 		i = readdir_r(dir, &entry, &result);
-		if (i > 0) goto error;
+		if (i > 0) {
+			errors = errno;
+			goto error;
+		}
 		if (result == NULL) break;
 		if (strcmp(result->d_name, ".") == 0) continue;
 		if (strcmp(result->d_name, "..") == 0) continue;
-		if ((lstat(result->d_name, &st)) != 0) goto error;
+		if ((lstat(result->d_name, &st)) != 0) {
+			errors = errno;
+			goto error;
+		}
 		if (S_ISLNK(st.st_mode) != 0) continue;
-		if ((chdir("..")) == -1) goto error;
+		if ((chdir("..")) == -1) {
+			errors = errno;
+			goto error;
+		}
 		strcpy(filename, "srcpkgs/");
 		strcat(filename, result->d_name);
 		strcat(filename, "/template");
 		ret = process(rcv, filename, rcv_check_version);
-		if ((chdir(path)) == -1) goto error;
+		if ((chdir(path)) == -1) {
+			errors = errno;
+			goto error;
+		}
 	}
 
-	if ((closedir(dir)) == -1) goto error;
-	if ((chdir("..")) == -1) goto error;
+	if ((closedir(dir)) == -1) {
+		errors = errno;
+		goto error;
+	}
+	if ((chdir("..")) == -1) {
+		errors = errno;
+		goto error;
+	}
 
 	return ret;
 }
