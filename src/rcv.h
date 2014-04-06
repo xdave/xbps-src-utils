@@ -60,7 +60,7 @@ typedef struct _map_t {
 
 typedef struct _rcv_t {
 	const char *prog, *fname;
-	char *input, *ptr, *xsrc_conf, *xbps_conf, *distdir, *pkgdir;
+	char *input, *ptr, *xbps_conf, *distdir, *pkgdir;
 	size_t len, have_vars;
 	map_t *env;
 	struct xbps_handle xhp;

@@ -139,13 +139,10 @@ show_usage(const char *prog)
 "See the COPYING file for license(s)/distribution details.\n\n"
 " Options:\n"
 "  -h,--help			Show this helpful help-message for help.\n"
-"  -c,--xbps-src-conf=FILENAME	Set (or override) the `xbps-src.conf' (which\n"
-"				may have automatically been detected).\n"
-"  -C,--xbps-conf=FILENAME	Set (or override) the `xbps.conf' (which may\n"
+"  -C,--xbps-conf FILENAME	Set (or override) the `xbps.conf' (which may\n"
 "				have automatically been detected).\n"
-"  -d,--distdir=DIRECTORY	Set (or override) the XBPS_DISTDIR setting\n"
-"				(which may have been set in your\n"
-"				`xbps-src.conf' file).\n"
+"  -d,--xbps-packages DIRECTORY	Set (or override) the path to xbps-packages\n"
+"				(defaults to ~/xbps-packages).\n"
 "  -s,--show-missing		List any binary packages which are not built.\n"
 "\n  [FILES...]			Extra packages to process with the outdated\n"
 "				ones (only processed if missing).\n\n",
@@ -179,8 +176,6 @@ rcv_end(rcv_t *rcv)
 
 	xbps_end(&rcv->xhp);
 
-	if (rcv->xsrc_conf != NULL)
-		free(rcv->xsrc_conf);
 	if (rcv->xbps_conf != NULL)
 		free(rcv->xbps_conf);
 	if (rcv->distdir != NULL)
@@ -397,24 +392,17 @@ rcv_process_file(rcv_t *rcv, const char *fname, rcv_check_func check)
 	return EXIT_SUCCESS;
 }
 
-static int
-rcv_parse_config(rcv_t *rcv)
-{
-	map_item_t distdir = map_find(rcv->env, "XBPS_DISTDIR");
-	rcv->distdir = strndup(distdir.v.s, distdir.v.len);
-	return 0;
-}
-
 static void
 rcv_set_distdir(rcv_t *rcv, const char *distdir)
 {
-	if (rcv->distdir == NULL && rcv->pkgdir == NULL) {
-		rcv->distdir = strdup(distdir);
-		rcv->pkgdir = strdup(distdir);
-		rcv->pkgdir = realloc(rcv->pkgdir,
-			sizeof(char)*(strlen(distdir)+strlen("/srcpkgs")+1));
-		rcv->pkgdir = strcat(rcv->pkgdir, "/srcpkgs");
-	}
+	if (rcv == NULL || distdir == NULL)
+		return;
+
+	rcv->distdir = strdup(distdir);
+	rcv->pkgdir = strdup(distdir);
+	rcv->pkgdir = realloc(rcv->pkgdir,
+		sizeof(char)*(strlen(distdir)+strlen("/srcpkgs")+1));
+	rcv->pkgdir = strcat(rcv->pkgdir, "/srcpkgs");
 }
 
 static void
@@ -422,12 +410,7 @@ rcv_find_conf(rcv_t *rcv)
 {
 	FILE *fp;
 	rcv_t c;
-
-	const char **lp, *conf, *xsrc_locs[] = {
-		ETCDIR "/xbps/xbps-src.conf",
-		"/etc/xbps/xbps-src.conf",
-		"/usr/local/etc/xbps/xbps-src.conf", NULL
-	};
+	const char **lp, *conf;
 
 	const char *xbps_locs[] = {
 		ETCDIR "/xbps/xbps.conf",
@@ -435,18 +418,6 @@ rcv_find_conf(rcv_t *rcv)
 		"/usr/local/etc/xbps/xbps.conf", NULL
 	};
 
-	if (!rcv->xsrc_conf) {
-		for (lp = xsrc_locs; (conf = *lp++);) {
-			if ((fp = fopen(conf, "r")) != NULL) {
-				fclose(fp);
-				rcv->xsrc_conf = calloc(strlen(conf) + 1,
-					sizeof(char));
-				rcv->xsrc_conf = strcpy(rcv->xsrc_conf, conf);
-				rcv->xsrc_conf[strlen(conf)] = '\0';
-				break;
-			}
-		}
-	}
 	if (!rcv->xbps_conf) {
 		for (lp = xbps_locs; (conf = *lp++);) {
 			if ((fp = fopen(conf, "r")) != NULL) {
@@ -460,7 +431,6 @@ rcv_find_conf(rcv_t *rcv)
 		}
 	}
 	memset(&c, 0, sizeof(rcv_t));
-	rcv_process_file(&c, rcv->xsrc_conf, rcv_parse_config);
 	rcv_set_distdir(rcv, c.distdir);
 	rcv_end(&c);
 }
@@ -492,13 +462,13 @@ rcv_check_version(rcv_t *rcv)
 	xbps_dictionary_get_cstring_nocopy(rcv->pkgd, "pkgver", &repover);
 	if (repover == NULL && (rcv->show_missing==true||rcv->manual==true)) {
 		printf("pkgname: %.*s repover: ? srcpkgver: %s\n",
-			pkgname.v.len, pkgname.v.s, srcver+pkgname.v.len+1);
+			(int)pkgname.v.len, pkgname.v.s, srcver+pkgname.v.len+1);
 	}
 	if (repover != NULL && rcv->show_missing == false) {
 		if (xbps_cmpver(repover+pkgname.v.len+1,
 		    srcver+pkgname.v.len+1) < 0) {
 			printf("pkgname: %.*s repover: %s srcpkgver: %s\n",
-				pkgname.v.len, pkgname.v.s,
+				(int)pkgname.v.len, pkgname.v.s,
 				repover+pkgname.v.len+1,
 				srcver+pkgname.v.len+1);
 		}
@@ -572,27 +542,22 @@ main(int argc, char **argv)
 {
 	int i, c;
 	rcv_t rcv;
-	const char *prog = argv[0], *sopts = "hc:C:d:s", *tmpl;
+	char *distdir = NULL;
+	const char *prog = argv[0], *sopts = "hC:d:s", *tmpl;
 	const struct option lopts[] = {
 		{ "help", no_argument, NULL, 'h' },
-		{ "xbps-src-conf", required_argument, NULL, 'c' },
 		{ "xbps-conf", required_argument, NULL, 'C' },
 		{ "distdir", required_argument, NULL, 'd' },
 		{ "show-missing", no_argument, NULL, 's' },
 		{ NULL, 0, NULL, 0 }
 	};
 
-	rcv.xsrc_conf = rcv.xbps_conf = rcv.distdir = rcv.pkgdir = NULL;
-	rcv.show_missing = false;
+	memset(&rcv, 0, sizeof(rcv));
 
 	while ((c = getopt_long(argc, argv, sopts, lopts, NULL)) != -1) {
 		switch (c) {
 		case 'h':
 			return show_usage(prog);
-		case 'c':
-			free(rcv.xsrc_conf);
-			rcv.xsrc_conf = strdup(optarg);
-			break;
 		case 'C':
 			free(rcv.xbps_conf);
 			rcv.xbps_conf = strdup(optarg);
@@ -608,6 +573,14 @@ main(int argc, char **argv)
 		default:
 			return show_usage(prog);
 		}
+	}
+	/*
+	 * If --distdir not set default to ~/xbps-packages.
+	 */
+	if (rcv.distdir == NULL) {
+		distdir = xbps_xasprintf("%s/xbps-packages", getenv("HOME"));
+		rcv_set_distdir(&rcv, distdir);
+		free(distdir);
 	}
 
 	argc -= optind;
