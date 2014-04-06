@@ -308,7 +308,6 @@ error:
 	return buf;
 }
 
-
 static int
 rcv_get_pkgver(rcv_t *rcv)
 {
