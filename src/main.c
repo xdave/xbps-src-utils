@@ -298,58 +298,67 @@ error:
 	return buf;
 }
 
+
 static int
 rcv_get_pkgver(rcv_t *rcv)
 {
-	struct slre_cap caps[2];
-	const char *regex = "^([_A-Za-z][_A-Za-z0-9]*)=([^\n]*)$";
-	const char *k, *v, *w;
-	size_t klen, vlen, tlen = 0, plen = 0, wlen = 0;
+	size_t klen, vlen;
 	map_item_t _item;
-	map_item_t *item;
-	
-	plen = strlen(rcv->ptr);
-	w = strchr(rcv->ptr, '\n');
-	wlen = (w == NULL) ? 0 : strlen(w);
+	map_item_t *item = NULL;
+	char c, *ptr = rcv->ptr, *e, *p, *k, *v;
 
-	tlen = slre_match(regex, rcv->ptr, plen - wlen, caps, 2, NULL);
-	if (tlen > 0) {
-		k = caps[0].ptr;
-		v = caps[1].ptr;
-		klen = caps[0].len;
-		vlen = caps[1].len;
-		if (v[0] == '"') { v++; vlen--; }
-		if (v[vlen-1] == '"') { vlen--; }
-		if (v[0] == '\n') { goto end; } /* Skips multiline string vars*/
-		_item = map_add_n(rcv->env, k, klen, v, vlen);
-		item = &rcv->env->items[_item.i];
-		if (strchr(v, '$')) {
-			item->v.s = rcv_refs(rcv, item->v.s, item->v.len);
-			item->v.len = strlen(item->v.s);
-			item->v.vmalloc = 1;
-		} else {
-			item->v.vmalloc = 0;
+	while ((c = *ptr) != '\0') {
+		if (c == '#') {
+			while (*ptr++ != '\n');
+			continue;
 		}
-		if (strchr(item->v.s, '$') && item->v.vmalloc == 1) {
-			item->v.s = rcv_cmd(rcv, item->v.s, item->v.len);
-			item->v.len = strlen(item->v.s);
+		if (c == '\n') {
+			ptr++;
+			continue;
 		}
-		if ((strncmp("pkgname",  k, klen) == 0) ||
-		    (strncmp("version",  k, klen) == 0) ||
-		    (strncmp("revision", k, klen) == 0)) {
-			rcv->have_vars += 1;
+		if (c == 'u' && (strncmp("unset", ptr, 5)) == 0) {
+			goto end;
 		}
+		if (isalpha(c) || c == '_') {
+			e = strchr(ptr, '=');
+			p = strchr(ptr, '\n');
+			k = ptr;
+			v = e + 1;
+			klen = strlen(k) - strlen(e);
+			vlen = strlen(v) - strlen(p);
+			if (v[0] == '"' && vlen == 1) {
+				while (*ptr++ != '"');
+				goto end;
+			}
+			if (v[0] == '"') { v++; vlen--; }
+			if (v[vlen-1] == '"') { vlen--; }
+			if (vlen == 0) { goto end; }
+			_item = map_add_n(rcv->env, k, klen, v, vlen);
+			item = &rcv->env->items[_item.i];
+			if (strchr(v, '$')) {
+				item->v.s = rcv_refs(rcv, item->v.s, item->v.len);
+				item->v.len = strlen(item->v.s);
+				item->v.vmalloc = 1;
+			} else {
+				item->v.vmalloc = 0;
+			}
+			if (strchr(item->v.s, '$') && item->v.vmalloc == 1) {
+				item->v.s = rcv_cmd(rcv, item->v.s, item->v.len);
+				item->v.len = strlen(item->v.s);
+			}
+			if ((strncmp("pkgname", k, klen) == 0) ||
+			    (strncmp("version",  k, klen) == 0) ||
+			    (strncmp("revision", k, klen) == 0)) {
+				rcv->have_vars += 1;
+			}
+			/*printf("'%.*s':'%.*s'\n", item->k.len, item->k.s, item->v.len, item->v.s);*/
+			if (rcv->have_vars > 2) break;
+		}
+		end:
+		ptr = strchr(ptr, '\n') + 1;
 	}
-	end:
-	rcv->ptr += plen - wlen;
-	if (*rcv->ptr == '\n')
-		rcv->ptr++;
 
-	if (*(rcv->ptr) == '\0' || rcv->have_vars > 2) {
-		return 0;
-	}
-
-	return 1;
+	return (rcv->have_vars > 2) ? 0 : 1;
 }
 
 static int
@@ -365,9 +374,11 @@ rcv_process_file(rcv_t *rcv, const char *fname, rcv_check_func check)
 		return EXIT_FAILURE;
 	}
 
+	/*printf("Processing %s\n", fname);*/
+
 	map_add(rcv->env, "HOME", getenv("HOME"));
 
-	while ((rcv_get_pkgver(rcv)) > 0);
+	rcv_get_pkgver(rcv);
 
 	check(rcv);
 

@@ -32,8 +32,6 @@ do {									\
 #include <stdbool.h>
 #include <xbps.h>
 
-#include "slre.h"
-
 typedef struct str_ptr_t {
 	char *s;
 	size_t len;
